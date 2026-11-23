@@ -1,0 +1,127 @@
+{
+  "clock_check": "2026011512000000+0000",
+  "cobc_flags": [
+    "-x",
+    "-std=ibm",
+    "-fbinary-truncate",
+    "-fsign=EBCDIC"
+  ],
+  "datasets": {
+    "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS": {
+      "bytes": 7500,
+      "lrecl": 150,
+      "org": "KSDS",
+      "recfm": "F",
+      "records": 50,
+      "role": "unchanged input",
+      "seed": "carddata.txt",
+      "sha256": "031dda48176a5ce913580feb768e4b536b33ac7d79765ffaaa45432fbef4e619"
+    }
+  },
+  "files": {
+    "sysout/STEP05.DISPLAY": {
+      "bytes": 7626,
+      "sha256": "49fee7f32ca60ee73a9a518f5db3422e94c2553256b09423b3fd60e48cab15dd"
+    },
+    "sysout/STEP05.SYSOUT": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sysout/STEP05.SYSPRINT": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "frozen_clock": {
+    "epoch": 1768478400,
+    "utc": "2026-01-15T12:00:00Z"
+  },
+  "jcl": {
+    "file": "legacy/app/jcl/READCARD.jcl",
+    "sha256": "1b1ac8b46a655783bcf7f5e86d238f05b91b10c846928edf54d07eddd46206bd"
+  },
+  "job": "READCARD",
+  "legacy_commit": "59cc6c2fd7ebd7ef7925cad552a01a4b8b6e4d5e",
+  "programs": {
+    "CBACT02C": {
+      "compile_warnings": [],
+      "copybooks": [
+        "CVACT02Y.cpy"
+      ],
+      "inputs_sha256": "b156543fe7ebe669105db1e78c03eb1aefb67188b4c9ff7934c184e63970914d",
+      "source": "legacy/app/cbl/CBACT02C.cbl"
+    }
+  },
+  "runtime_env": {
+    "COB_VARSEQ_FORMAT": "0",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "seed_loads": [
+    {
+      "dsn": "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS",
+      "from_dsn": "AWS.M2.CARDDEMO.CARDDATA.PS",
+      "loader": "KSLOAD RECORDS=000000050",
+      "seed": "carddata.txt",
+      "seed_normalisation": {
+        "crlf": 0,
+        "padded": 0,
+        "records": 50
+      },
+      "via": "REPRO in CARDFILE.jcl"
+    }
+  ],
+  "steps": [
+    {
+      "abended": false,
+      "dds": [
+        {
+          "dd": "STEPLIB",
+          "ignored": "load library"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS",
+          "dd": "CARDFILE",
+          "disp": [
+            "SHR",
+            "KEEP",
+            "KEEP"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS"
+        },
+        {
+          "dd": "SYSOUT",
+          "sysout": "*"
+        },
+        {
+          "dd": "SYSPRINT",
+          "sysout": "*"
+        }
+      ],
+      "pgm": "CBACT02C",
+      "result": {
+        "rc": 0
+      },
+      "step": "STEP05"
+    }
+  ],
+  "stubs": {
+    "CEE3ABD": "e4050e0e3cc7af1e6cc84ab06845894ae06b4bf9d45bed93d990ac080f4d32d9",
+    "COBDATFT": "dac298d0681ee6915eecc5844dd635aecd72ed9a5f7ade028596da21b3d22b8e"
+  },
+  "toolchain": {
+    "cobc": "cobc (GnuCOBOL) 3.1.2.0",
+    "gcc": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "indexed_handler": "BDB"
+  },
+  "verification": {
+    "compared": [
+      "manifest.json",
+      "sysout/STEP05.DISPLAY",
+      "sysout/STEP05.SYSOUT",
+      "sysout/STEP05.SYSPRINT"
+    ],
+    "identical_runs": 2
+  }
+}

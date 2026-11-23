@@ -1,0 +1,71 @@
+{
+  "type": "object",
+  "required": [
+    "unit_id",
+    "status",
+    "files_created",
+    "tests",
+    "equivalence",
+    "open_questions"
+  ],
+  "properties": {
+    "unit_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "migrated",
+        "partial",
+        "blocked"
+      ]
+    },
+    "files_created": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tests": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer"
+        },
+        "failed": {
+          "type": "integer"
+        }
+      }
+    },
+    "equivalence": {
+      "type": "object",
+      "properties": {
+        "records_compared": {
+          "type": "integer"
+        },
+        "mismatches": {
+          "type": "integer"
+        },
+        "mismatch_samples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "playbook_lessons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Rules to add to this playbook so the next session avoids the problems hit here"
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
