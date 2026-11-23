@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scout: CardDemo plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE work: an FDE's scoping report, read by an engineering lead
+   IDEA the green-bar fanfold printout a mainframe shop runs its night batch from
+   PICTURE wave run-sheet: four lanes, every unit a block sized by effort, coloured by verifiability
+   COLOUR white paper, black ink, green-bar bands, one IBM blue for links/accents, red only for blocked
+   TYPE IBM Plex Sans for prose + IBM Plex Mono for program/dataset identifiers
+   LAYOUT title + figures across the top, run-sheet full width beneath; phone stacks lanes */
+:root{color-scheme:light dark;--bg:light-dark(#fff,#0f1411);--ink:light-dark(#111,#e8efe9);--mute:light-dark(#555,#9db0a3);--bar:light-dark(#e3f1e1,#16231a);--rule:light-dark(#111,#cfe3d3);--blue:light-dark(#0f62fe,#78a9ff);--ready:light-dark(#1f7a3a,#56c97a);--chain:light-dark(#9ec9a6,#2f6b42);--replay:light-dark(#c6d9f5,#29436b);--block:light-dark(#d8342c,#ff7a70);--card:light-dark(#fff,#121a15)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "IBM Plex Sans",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(28px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.paper{background:repeating-linear-gradient(var(--bg) 0 48px,var(--bar) 48px 96px)}
+h1{font-size:clamp(32px,4.4vw,50px);line-height:1.05;letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance;max-width:22ch}
+h2{font-size:24px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+p{max-width:70ch;margin:0 0 12px}
+.lede{font-size:17px;color:var(--mute)}
+code,.id{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px}
+.top{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:end;border-bottom:3px solid var(--rule);padding-bottom:20px}
+.figs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 20px}
+.fg b{display:block;font-size:clamp(28px,3.4vw,40px);line-height:1;font-weight:700;font-variant-numeric:tabular-nums}
+.fg span{font-size:14px;color:var(--mute)}
+.lanes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+.lane{border-top:2px solid var(--rule);padding-top:8px}
+.lane h3{font-size:16px;margin:0 0 2px}.lane small{display:block;color:var(--mute);font-size:13px;margin-bottom:10px;min-height:2.6em}
+.blk{display:block;width:100%;text-align:left;border:1px solid color-mix(in srgb,var(--ink) 25%,transparent);background:var(--card);color:var(--ink);margin:0 0 6px;padding:6px 8px;cursor:pointer;font:inherit;border-left:8px solid var(--c);position:relative;transition:transform .15s}
+.blk:hover,.blk:focus-visible{transform:translateX(3px);outline:2px solid var(--blue);outline-offset:1px}
+.blk .id{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.blk .m{font-size:13px;color:var(--mute);white-space:nowrap}
+.key{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;margin-top:14px;color:var(--mute)}
+.key i{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:6px;background:var(--c)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{text-align:left;font-weight:600;border-bottom:2px solid var(--rule);padding:6px 8px}
+td{border-bottom:1px solid color-mix(in srgb,var(--ink) 15%,transparent);padding:6px 8px;vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow-x:auto}
+.pill{display:inline-block;padding:0 7px;font-size:13px;border-radius:3px;background:var(--c);color:light-dark(#fff,#0f1411);white-space:nowrap}
+.pill.lt{color:var(--ink)}
+#det{border:2px solid var(--rule);padding:20px;background:var(--card);margin-top:18px}
+#det pre{white-space:pre-wrap;font:13px/1.5 "IBM Plex Mono",monospace;background:var(--bar);padding:14px;max-height:520px;overflow:auto}
+.btn{font:inherit;font-size:14px;padding:10px 14px;min-height:44px;border:1px solid var(--ink);background:var(--bg);color:var(--ink);cursor:pointer}
+.btn:focus-visible{outline:2px solid var(--blue)}
+.rw{font-family:"IBM Plex Mono",monospace;font-size:13px;text-align:center}
+.cut li{margin-bottom:6px}
+a{color:var(--blue)}
+@media(max-width:900px){.top,.cols{grid-template-columns:minmax(0,1fr)}.lanes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.lanes{grid-template-columns:minmax(0,1fr)}table{font-size:13px}th,td{padding:5px 4px}.stack thead{display:none}.stack tr{display:grid;padding-block:8px}.stack td{display:flex;justify-content:space-between;gap:12px;border:0;padding:2px 0}.stack td::before{content:attr(data-l);color:var(--mute)}}
+@media(prefers-reduced-motion:reduce){.blk{transition:none}}
+</style></head><body>
+<section class="band paper"><div class="wrap">
+<div class="top">
+ <div>
+  <h1 id="title">Scout plan</h1>
+  <p class="lede" id="lede"></p>
+ </div>
+ <div class="figs" id="figs"></div>
+</div>
+<div class="lanes" id="lanes"></div>
+<div class="key" id="key"></div>
+<div id="det" hidden></div>
+</div></section>
+
+<section class="band"><div class="wrap cols">
+ <div>
+  <h2>Cut over in this order</h2>
+  <p>Data flow between batch jobs. A group with several jobs reads and writes the same master files, so those jobs have to switch systems together.</p>
+  <ol class="cut" id="cut"></ol>
+ </div>
+ <div>
+  <h2>Hot datasets need one system of record</h2>
+  <p>These files are written by more than one unit. Decide early where each one lives during the transition.</p>
+  <div class="scroll"><table class="stack" id="hot"><thead><tr><th>Dataset</th><th class="n">Writers</th><th class="n">Readers</th><th>Seed data</th></tr></thead><tbody></tbody></table></div>
+ </div>
+</div></section>
+
+<section class="band"><div class="wrap">
+ <h2>Every unit</h2>
+ <p>Effort points come from LOC, branching, GO TOs, COMP-3, REDEFINES, file count, CICS, SQL, IMS and MQ usage. The coefficients are heuristics, meant to be recalibrated after wave 1 using real session data.</p>
+ <div class="scroll"><table class="stack" id="all"><thead><tr><th>Unit</th><th>Kind</th><th class="n">Wave</th><th class="n">LOC</th><th class="n">Points</th><th class="n">Sessions</th><th class="n">Review h</th><th>Harness</th></tr></thead><tbody></tbody></table></div>
+</div></section>
+
+<section class="band paper"><div class="wrap">
+ <h2>Inventory</h2>
+ <p id="inv"></p>
+ <p class="lede" id="foot"></p>
+</div></section>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+{
+const D = JSON.parse(document.getElementById('data').textContent);
+const U = D.units, T = D.totals;
+const C = {ready:'var(--ready)', chained:'var(--chain)', replay:'var(--replay)', blocked:'var(--block)', 'n/a':'var(--mute)'};
+const LBL = {ready:'Verifiable now', chained:'Needs upstream golden run', replay:'Needs screen recordings', blocked:'Blocked on a decision', 'n/a':'Library (unit tests)'};
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const short = d => d.replace(/^AWS\.M2\.CARDDEMO\./, '');
+
+document.getElementById('title').textContent =
+  `${D.app}: ${T.units} Devin-sized units, up to ${T.parallel_max} in parallel, ${T.harness_ready} verifiable today`;
+document.getElementById('lede').textContent =
+  `Scout read ${T.loc.toLocaleString()} lines across ${T.programs} programs, ${T.copybooks} copybooks and ${T.jobs} JCL jobs and split the migration into four waves. Wave 0 builds the shared contracts so that everything after it can run in parallel.`;
+
+const figs = [
+  [T.units, 'migration units'],
+  [T.sessions, 'est. Devin sessions'],
+  [T.review_hours, 'est. human review hours'],
+  [T.harness_ready, 'units with a test oracle ready'],
+];
+document.getElementById('figs').innerHTML = figs.map(([v,l]) => `<div class="fg"><b>${v}</b><span>${l}</span></div>`).join('');
+
+const WAVES = [
+  ['Wave 0: foundations', 'Shared record codecs, subprograms and the online platform. Everything else imports these.'],
+  ['Wave 1: batch', 'One unit per JCL job. With golden datasets, all of them migrate in parallel.'],
+  ['Wave 2: online', 'One unit per CICS screen, built on the wave 0 session and data layer.'],
+  ['Wave 3: extensions', 'IMS, DB2 and MQ modules. Each needs a target-platform decision first.'],
+];
+document.getElementById('lanes').innerHTML = WAVES.map(([h, s], w) => {
+  const us = U.filter(u => u.wave === w).sort((a,b) => b.points - a.points);
+  const pts = us.reduce((a,u) => a + u.points, 0);
+  return `<div class="lane"><h3>${h}</h3><small>${s} ${us.length} units, ${pts.toFixed(0)} pts.</small>` +
+    us.map(u => `<button class="blk" style="--c:${C[u.harness]};min-height:${Math.round(34 + Math.min(u.points, 40) * 2.2)}px" data-id="${esc(u.id)}" aria-label="${esc(u.id)} details"><span class="id">${esc(u.id)}</span><span class="m">${u.size} · ${u.points} pts · ${u.sessions} sess</span></button>`).join('') + '</div>';
+}).join('');
+document.getElementById('key').innerHTML = Object.keys(LBL).map(k => `<span><i style="--c:${C[k]}"></i>${LBL[k]}</span>`).join('') + '<span>Block height = effort</span>';
+
+const det = document.getElementById('det');
+function show(id) {
+  const u = U.find(x => x.id === id); if (!u) return;
+  const io = [...new Set([...u.reads, ...u.writes])].map(d => `<code>${esc(short(d))}</code> ${u.reads.includes(d) ? 'R' : ''}${u.writes.includes(d) ? 'W' : ''}`).join(', ');
+  det.hidden = false;
+  det.innerHTML = `<h2><span class="id" style="font-size:22px">${esc(u.id)}</span>: ${esc(u.title)}</h2>
+   <p>${esc(u.description)}</p>
+   <p><span class="pill ${u.harness==='chained'||u.harness==='replay'?'lt':''}" style="--c:${C[u.harness]}">${LBL[u.harness]}</span> ${esc(u.harness_detail)}</p>
+   <p><b>Programs:</b> ${u.programs.map(p => `<code>${esc(p)}</code>`).join(', ') || 'none'}. <b>Depends on:</b> ${u.depends_on.map(esc).join(', ') || 'nothing'}.</p>
+   ${io ? `<p><b>Data:</b> ${io}</p>` : ''}
+   ${u.risks.length ? `<p><b>Risks:</b></p><ul>${u.risks.map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
+   <p><button class="btn" id="cp">Copy playbook</button> <button class="btn" id="cl">Close</button></p>
+   <pre>${esc(D.playbooks[u.id])}</pre>`;
+  document.getElementById('cl').onclick = () => { det.hidden = true; };
+  document.getElementById('cp').onclick = e => {
+    navigator.clipboard.writeText(D.playbooks[u.id]).then(() => { e.target.textContent = 'Copied'; }, () => { e.target.textContent = 'Copy blocked: select the text below'; });
+  };
+  det.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start'});
+}
+document.getElementById('lanes').addEventListener('click', e => { const b = e.target.closest('.blk'); if (b) show(b.dataset.id); });
+
+document.getElementById('cut').innerHTML = D.cutover.map(g =>
+  `<li>${g.map(x => `<code>${esc(x)}</code>`).join(' + ')}${g.length > 1 ? ' <b>(cut over together)</b>' : ''}</li>`).join('');
+
+const hot = Object.entries(D.datasets).filter(([,v]) => v.writers.length > 1).sort((a,b) => b[1].writers.length - a[1].writers.length);
+document.querySelector('#hot tbody').innerHTML = hot.map(([d, v]) =>
+  `<tr><td data-l="Dataset"><code>${esc(short(d))}</code></td><td class="n" data-l="Writers" title="${esc(v.writers.join(', '))}">${v.writers.length}</td><td class="n" data-l="Readers" title="${esc(v.readers.join(', '))}">${v.readers.length}</td><td data-l="Seed">${v.seed ? `<code>${esc(v.seed)}</code>` : 'none'}</td></tr>`).join('');
+
+document.querySelector('#all tbody').innerHTML = [...U].sort((a,b) => a.wave - b.wave || b.points - a.points).map(u =>
+  `<tr><td data-l="Unit"><a href="#" data-id="${esc(u.id)}"><code>${esc(u.id)}</code></a></td><td data-l="Kind">${esc(u.kind)}</td><td class="n" data-l="Wave">${u.wave}</td><td class="n" data-l="LOC">${u.loc || ''}</td><td class="n" data-l="Points">${u.points}</td><td class="n" data-l="Sessions">${u.sessions}</td><td class="n" data-l="Review h">${u.review_hours}</td><td data-l="Harness"><span class="pill ${u.harness==='chained'||u.harness==='replay'?'lt':''}" style="--c:${C[u.harness]}">${esc(u.harness)}</span></td></tr>`).join('');
+document.getElementById('all').addEventListener('click', e => { const a = e.target.closest('a[data-id]'); if (a) { e.preventDefault(); show(a.dataset.id); } });
+
+const bk = Object.entries(T.by_kind).map(([k,v]) => `${v} ${k}`).join(', ');
+document.getElementById('inv').innerHTML = `Programs by kind: ${esc(bk)}. Shared copybooks promoted to wave 0: ${D.shared_copybooks.map(c => `<code>${esc(c)}</code>`).join(', ')}. Seed files found: ${D.seeds.map(s => `<code>${esc(s)}</code>`).join(', ')}. Utility-only JCL (becomes infrastructure-as-code, not code migration): ${T.utility_only_jobs.length} jobs.`;
+document.getElementById('foot').textContent = `Generated by Scout on ${D.generated} from ${D.source}. Sessions and review hours are heuristic estimates.`;
+}
+</script>
+</body></html>

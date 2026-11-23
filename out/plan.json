@@ -1,0 +1,2862 @@
+{
+  "app": "CardDemo",
+  "source": "/home/claude/src/carddemo/app",
+  "generated": "2026-11-22",
+  "totals": {
+    "programs": 44,
+    "copybooks": 62,
+    "jobs": 46,
+    "loc": 22904,
+    "units": 45,
+    "parallel_max": 17,
+    "sessions": 135,
+    "review_hours": 244.6,
+    "harness_ready": 8,
+    "by_kind": {
+      "batch": 14,
+      "cics": 22,
+      "cics-mq": 3,
+      "db2-batch": 1,
+      "ims-batch": 4
+    },
+    "utility_only_jobs": [
+      "ACCTFILE",
+      "CARDFILE",
+      "CBADMCDJ",
+      "CLOSEFIL",
+      "COMBTRAN",
+      "CREADB21",
+      "CUSTFILE",
+      "DALYREJS",
+      "DBPAUTP0",
+      "DEFCUST",
+      "DEFGDGB",
+      "DEFGDGD",
+      "DISCGRP",
+      "DUSRSECJ",
+      "ESDSRRDS",
+      "FTPJCL",
+      "INTRDRJ1",
+      "INTRDRJ2",
+      "OPENFIL",
+      "PRTCATBL",
+      "REPTFILE",
+      "TCATBALF",
+      "TRANBKP",
+      "TRANCATG",
+      "TRANEXTR",
+      "TRANFILE",
+      "TRANIDX",
+      "TRANTYPE",
+      "TXT2PDF1",
+      "XREFFILE"
+    ]
+  },
+  "units": [
+    {
+      "id": "F-CODECS",
+      "title": "Shared record-layout codecs",
+      "kind": "foundation",
+      "wave": 0,
+      "programs": [],
+      "jobs": [],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CIPAUDTY",
+        "CIPAUSMY",
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSMSG02Y",
+        "CSSETATY",
+        "CSSTRPFY",
+        "CSUSR01Y",
+        "CSUTLDWY",
+        "CVACT01Y",
+        "CVACT02Y",
+        "CVACT03Y",
+        "CVCRD01Y",
+        "CVCUS01Y",
+        "CVEXPORT",
+        "CVTRA01Y",
+        "CVTRA05Y",
+        "CVTRA06Y",
+        "IMSFUNCS",
+        "PAUTBPCB"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [],
+      "points": 17.5,
+      "size": "XL",
+      "sessions": 3,
+      "review_hours": 6.1,
+      "risks": [
+        "packed decimal (COMP-3) fields in shared layouts",
+        "REDEFINES in shared layouts -- every unit must decode identically"
+      ],
+      "harness": "ready",
+      "harness_detail": "round-trip encode(decode(record)) == record on 9 seed files",
+      "intermediate": [],
+      "target": "Python package: fixed-width record dataclasses + encode/decode (Decimal-safe), round-trip tested on seed data",
+      "description": "Translate the 22 copybooks shared across units into one codec library. Every other unit imports it; this is the contract that makes parallel migration safe.",
+      "loc": 0
+    },
+    {
+      "id": "F-SUBPROGS",
+      "title": "Shared subprograms",
+      "kind": "foundation",
+      "wave": 0,
+      "programs": [
+        "CSUTLDTC"
+      ],
+      "jobs": [],
+      "copybooks_private": [],
+      "copybooks_shared": [],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [],
+      "points": 3.4,
+      "size": "S",
+      "sessions": 1,
+      "review_hours": 1.2,
+      "risks": [
+        "3 REDEFINES: overlapping storage, needs explicit union decoding",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "n/a",
+      "harness_detail": "",
+      "intermediate": [],
+      "target": "Python module with identical call contract (LINKAGE SECTION -> typed function signature)",
+      "description": "Called by multiple programs; migrate once as a library before dependents.",
+      "loc": 0
+    },
+    {
+      "id": "F-ONLINE-PLATFORM",
+      "title": "Online platform: COMMAREA session + CICS file access layer",
+      "kind": "foundation",
+      "wave": 0,
+      "programs": [],
+      "jobs": [],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "COCOM01Y"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [],
+      "points": 5.0,
+      "size": "M",
+      "sessions": 1,
+      "review_hours": 1.8,
+      "risks": [
+        "pseudo-conversational flow (RETURN TRANSID) must become explicit request/session state"
+      ],
+      "harness": "n/a",
+      "harness_detail": "",
+      "intermediate": [],
+      "target": "Session-state model replacing COMMAREA pseudo-conversation; repository layer over the keyed stores",
+      "description": "CICS screens hand state through COMMAREA and XCTL. Define the session model and data-access layer once so each screen migrates independently.",
+      "loc": 0
+    },
+    {
+      "id": "B-CBEXPORT",
+      "title": "Batch job CBEXPORT",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBEXPORT"
+      ],
+      "jobs": [
+        "CBEXPORT"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CVACT01Y",
+        "CVACT02Y",
+        "CVACT03Y",
+        "CVCUS01Y",
+        "CVEXPORT",
+        "CVTRA05Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.EXPORT.DATA"
+      ],
+      "utilities": [
+        "IDCAMS"
+      ],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 10.6,
+      "size": "L",
+      "sessions": 2,
+      "review_hours": 3.7,
+      "risks": [
+        "LE abend (CEE3ABD): map to explicit error exit codes"
+      ],
+      "harness": "chained",
+      "harness_detail": "inputs produced by B-POSTTRAN -- run legacy upstream on GnuCOBOL to capture golden inputs",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "EXPORT CUSTOMER DATA FROM VSAM FILES TO MULTI-RECORD EXPORT FILE FOR BRANCH MIGRATION OR DATA TRANSFER PURPOSES STEP 1: DEFINE VSAM CLUSTER FOR EXPORT FILE STEP 2: RUN EXPORT PROGRAM INPUT VSAM FILES OUTPUT EXPORT VSAM FILE SYSTEM OUTPUT",
+      "loc": 396
+    },
+    {
+      "id": "B-CBIMPORT",
+      "title": "Batch job CBIMPORT",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBIMPORT"
+      ],
+      "jobs": [
+        "CBIMPORT"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CVACT01Y",
+        "CVACT02Y",
+        "CVACT03Y",
+        "CVCUS01Y",
+        "CVEXPORT",
+        "CVTRA05Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.EXPORT.DATA"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.ACCTDATA.IMPORT",
+        "AWS.M2.CARDDEMO.CARDXREF.IMPORT",
+        "AWS.M2.CARDDEMO.CUSTDATA.IMPORT",
+        "AWS.M2.CARDDEMO.IMPORT.ERRORS",
+        "AWS.M2.CARDDEMO.TRANSACT.IMPORT"
+      ],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 11.8,
+      "size": "L",
+      "sessions": 2,
+      "review_hours": 4.1,
+      "risks": [
+        "LE abend (CEE3ABD): map to explicit error exit codes",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "chained",
+      "harness_detail": "inputs produced by B-CBEXPORT -- run legacy upstream on GnuCOBOL to capture golden inputs",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "IMPORT CUSTOMER DATA FROM MULTI-RECORD EXPORT FILE AND SPLIT INTO SEPARATE NORMALIZED FILES FOR TARGET SYSTEM INPUT EXPORT FILE OUTPUT NORMALIZED FILES ERROR OUTPUT FILE SYSTEM OUTPUT //",
+      "loc": 337
+    },
+    {
+      "id": "B-CBPAUP0J",
+      "title": "Batch job CBPAUP0J",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "CBPAUP0C"
+      ],
+      "jobs": [
+        "CBPAUP0J"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CIPAUDTY",
+        "CIPAUSMY"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 11.1,
+      "size": "L",
+      "sessions": 2,
+      "review_hours": 3.9,
+      "risks": [
+        "IMS DL/I calls: hierarchical DB needs a target data-model decision"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "EXECUTE IMS PROGRAM TO DELETE EXPIRED AUTHORIZATIONS",
+      "loc": 266
+    },
+    {
+      "id": "B-CREASTMT",
+      "title": "Batch job CREASTMT",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBSTM03A",
+        "CBSTM03B"
+      ],
+      "jobs": [
+        "CREASTMT"
+      ],
+      "copybooks_private": [
+        "COSTM01",
+        "CUSTREC"
+      ],
+      "copybooks_shared": [
+        "CVACT01Y",
+        "CVACT03Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.STATEMNT.HTML",
+        "AWS.M2.CARDDEMO.STATEMNT.PS",
+        "AWS.M2.CARDDEMO.TRXFL.SEQ",
+        "AWS.M2.CARDDEMO.TRXFL.VSAM.KSDS"
+      ],
+      "utilities": [
+        "IDCAMS",
+        "IEFBR14",
+        "SORT"
+      ],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 31.6,
+      "size": "XL",
+      "sessions": 6,
+      "review_hours": 11.1,
+      "risks": [
+        "1 COMP-3 fields: use Decimal, never float",
+        "13 GO TOs: unstructured control flow, translate paragraph-by-paragraph",
+        "14 GO TOs: unstructured control flow, translate paragraph-by-paragraph",
+        "LE abend (CEE3ABD): map to explicit error exit codes",
+        "DFSORT step: reproduce sort keys/collation exactly (EBCDIC vs ASCII order)"
+      ],
+      "harness": "chained",
+      "harness_detail": "inputs produced by B-POSTTRAN -- run legacy upstream on GnuCOBOL to capture golden inputs",
+      "intermediate": [
+        "AWS.M2.CARDDEMO.TRXFL.SEQ"
+      ],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "This JCL will create statement for each CARD present in the XREF file CREATE COPY OF TRANSACT FILE WITH CARD NUMBER AND TRAN ID AS KEY DELETE TRANSACTION REPORTS FROM PREVIOUS RUN PRODUCING REPORT IN TEXT AND HTML - DEMONSTRATES CALLED SUBROUTINE",
+      "loc": 946
+    },
+    {
+      "id": "B-INTCALC",
+      "title": "Batch job INTCALC",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBACT04C"
+      ],
+      "jobs": [
+        "INTCALC"
+      ],
+      "copybooks_private": [
+        "CVTRA02Y"
+      ],
+      "copybooks_shared": [
+        "CVACT01Y",
+        "CVACT03Y",
+        "CVTRA01Y",
+        "CVTRA05Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.DISCGRP.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.SYSTRAN"
+      ],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 14.8,
+      "size": "L",
+      "sessions": 3,
+      "review_hours": 5.2,
+      "risks": [
+        "2 REDEFINES: overlapping storage, needs explicit union decoding",
+        "LE abend (CEE3ABD): map to explicit error exit codes",
+        "date arithmetic: check century/Lilian-day semantics",
+        "in-place VSAM KSDS updates (I-O): needs keyed store with read-modify-write"
+      ],
+      "harness": "ready",
+      "harness_detail": "inputs seeded: acctdata.txt, cardxref.txt, discgrp.txt, tcatbal.txt",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "Process transaction balance file and compute interest and fees.",
+      "loc": 552
+    },
+    {
+      "id": "B-LOADPADB",
+      "title": "Batch job LOADPADB",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "PAUDBLOD"
+      ],
+      "jobs": [
+        "LOADPADB"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CIPAUDTY",
+        "CIPAUSMY",
+        "IMSFUNCS",
+        "PAUTBPCB"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.PAUTDB.CHILD.FILEO",
+        "AWS.M2.CARDDEMO.PAUTDB.ROOT.FILEO"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 12.2,
+      "size": "L",
+      "sessions": 3,
+      "review_hours": 4.3,
+      "risks": [
+        "2 COMP-3 fields: use Decimal, never float",
+        "IMS DL/I calls: hierarchical DB needs a target data-model decision"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "YLIBS JCLLIB ORDER=VIPINGP.CNTL.PROCLIB EXECUTE IMS PROGRAM DDPAUTP0   DD DSN=OEM.IMS.IMSP.PAUTHDB,DISP=SHR DDPAUTX0   DD DSN=OEM.IMS.IMSP.PAUTHDBX,DISP=SHR FSVSAMP   DD DUMMY",
+      "loc": 251
+    },
+    {
+      "id": "B-MNTTRDB2",
+      "title": "Batch job MNTTRDB2",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "COBTUPDT"
+      ],
+      "jobs": [
+        "MNTTRDB2"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [],
+      "reads": [
+        "INPFILE"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [],
+      "points": 5.9,
+      "size": "M",
+      "sessions": 1,
+      "review_hours": 2.1,
+      "risks": [
+        "DB2 SQL on CARDDEMO.TRANSACTION_TYPE: map to RDS/Aurora, check isolation levels"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "// // USE THIS JOB TO MAINTAIN DB2 TRANSACTION TABLE, INSERTING,      *// UPDATING OR REMOVING RECORDS IN BATCH.                          *// // INPFILE - THE INPUT FILE TO USE FOR UPDATES. THE ALLOWED VALUES *// ARE:                                                  *// // COLUMN 1     - A - ADD    ",
+      "loc": 177
+    },
+    {
+      "id": "B-POSTTRAN",
+      "title": "Batch job POSTTRAN",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBTRN02C"
+      ],
+      "jobs": [
+        "POSTTRAN"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CVACT01Y",
+        "CVACT03Y",
+        "CVTRA01Y",
+        "CVTRA05Y",
+        "CVTRA06Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.DALYTRAN.PS",
+        "AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.DALYREJS",
+        "AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+      ],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 16.3,
+      "size": "XL",
+      "sessions": 3,
+      "review_hours": 5.7,
+      "risks": [
+        "2 REDEFINES: overlapping storage, needs explicit union decoding",
+        "LE abend (CEE3ABD): map to explicit error exit codes",
+        "date arithmetic: check century/Lilian-day semantics",
+        "in-place VSAM KSDS updates (I-O): needs keyed store with read-modify-write"
+      ],
+      "harness": "ready",
+      "harness_detail": "inputs seeded: acctdata.txt, cardxref.txt, dailytran.txt, tcatbal.txt",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "Process and load daily transaction file and create transaction category balance and update transaction master vsam",
+      "loc": 619
+    },
+    {
+      "id": "B-READACCT",
+      "title": "Batch job READACCT",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBACT01C"
+      ],
+      "jobs": [
+        "READACCT"
+      ],
+      "copybooks_private": [
+        "CODATECN"
+      ],
+      "copybooks_shared": [
+        "CVACT01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.ACCTDATA.ARRYPS",
+        "AWS.M2.CARDDEMO.ACCTDATA.PSCOMP",
+        "AWS.M2.CARDDEMO.ACCTDATA.VBPS"
+      ],
+      "utilities": [
+        "IEFBR14"
+      ],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 10.2,
+      "size": "L",
+      "sessions": 2,
+      "review_hours": 3.6,
+      "risks": [
+        "2 COMP-3 fields: use Decimal, never float",
+        "2 REDEFINES: overlapping storage, needs explicit union decoding",
+        "LE abend (CEE3ABD): map to explicit error exit codes"
+      ],
+      "harness": "ready",
+      "harness_detail": "inputs seeded: acctdata.txt",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "PRE DELETE STEP RUN THE PROGRAM THAT READS THE ACCOUNT MASTER VSAM FILE",
+      "loc": 358
+    },
+    {
+      "id": "B-READCARD",
+      "title": "Batch job READCARD",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBACT02C"
+      ],
+      "jobs": [
+        "READCARD"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CVACT02Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 3.4,
+      "size": "S",
+      "sessions": 1,
+      "review_hours": 1.2,
+      "risks": [
+        "LE abend (CEE3ABD): map to explicit error exit codes"
+      ],
+      "harness": "ready",
+      "harness_detail": "inputs seeded: carddata.txt",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "RUN THE PROGRAM THAT READS THE CARD MASTER VSAM FILE",
+      "loc": 129
+    },
+    {
+      "id": "B-READCUST",
+      "title": "Batch job READCUST",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBCUS01C"
+      ],
+      "jobs": [
+        "READCUST"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CVCUS01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 3.4,
+      "size": "S",
+      "sessions": 1,
+      "review_hours": 1.2,
+      "risks": [
+        "LE abend (CEE3ABD): map to explicit error exit codes"
+      ],
+      "harness": "ready",
+      "harness_detail": "inputs seeded: custdata.txt",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "RUN THE PROGRAM THAT READS THE CUSTOMER MASTER VSAM FILE",
+      "loc": 130
+    },
+    {
+      "id": "B-READXREF",
+      "title": "Batch job READXREF",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBACT03C"
+      ],
+      "jobs": [
+        "READXREF"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CVACT03Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 3.4,
+      "size": "S",
+      "sessions": 1,
+      "review_hours": 1.2,
+      "risks": [
+        "LE abend (CEE3ABD): map to explicit error exit codes"
+      ],
+      "harness": "ready",
+      "harness_detail": "inputs seeded: cardxref.txt",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "RUN THE PROGRAM THAT READS THE XREF MASTER VSAM FILE",
+      "loc": 130
+    },
+    {
+      "id": "B-TRANREPT",
+      "title": "Batch job TRANREPT",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBTRN03C"
+      ],
+      "jobs": [
+        "TRANREPT"
+      ],
+      "copybooks_private": [
+        "CVTRA03Y",
+        "CVTRA04Y",
+        "CVTRA07Y"
+      ],
+      "copybooks_shared": [
+        "CVACT03Y",
+        "CVTRA05Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.DATEPARM",
+        "AWS.M2.CARDDEMO.TRANCATG.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.TRANTYPE.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.TRANREPT",
+        "AWS.M2.CARDDEMO.TRANSACT.BKUP",
+        "AWS.M2.CARDDEMO.TRANSACT.DALY"
+      ],
+      "utilities": [
+        "SORT"
+      ],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 15.2,
+      "size": "L",
+      "sessions": 3,
+      "review_hours": 5.3,
+      "risks": [
+        "2 COMP-3 fields: use Decimal, never float",
+        "LE abend (CEE3ABD): map to explicit error exit codes",
+        "DFSORT step: reproduce sort keys/collation exactly (EBCDIC vs ASCII order)"
+      ],
+      "harness": "chained",
+      "harness_detail": "inputs produced by B-POSTTRAN -- run legacy upstream on GnuCOBOL to capture golden inputs",
+      "intermediate": [
+        "AWS.M2.CARDDEMO.TRANSACT.BKUP",
+        "AWS.M2.CARDDEMO.TRANSACT.DALY"
+      ],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "` Unload the processed transaction file Filter the transactions for a the parm date and sort by card num Produce a formatted report for processed transactions Input files Output files",
+      "loc": 545
+    },
+    {
+      "id": "B-UNLDGSAM",
+      "title": "Batch job UNLDGSAM",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "DBUNLDGS"
+      ],
+      "jobs": [
+        "UNLDGSAM"
+      ],
+      "copybooks_private": [
+        "PADFLPCB",
+        "PASFLPCB"
+      ],
+      "copybooks_shared": [
+        "CIPAUDTY",
+        "CIPAUSMY",
+        "IMSFUNCS",
+        "PAUTBPCB"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 9.3,
+      "size": "L",
+      "sessions": 2,
+      "review_hours": 3.3,
+      "risks": [
+        "1 COMP-3 fields: use Decimal, never float",
+        "IMS DL/I calls: hierarchical DB needs a target data-model decision"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "EXECUTE IMS PROGRAM FSVSAMP   DD DUMMY",
+      "loc": 198
+    },
+    {
+      "id": "B-UNLDPADB",
+      "title": "Batch job UNLDPADB",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "PAUDBUNL"
+      ],
+      "jobs": [
+        "UNLDPADB"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CIPAUDTY",
+        "CIPAUSMY",
+        "IMSFUNCS",
+        "PAUTBPCB"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.PAUTDB.CHILD.FILEO",
+        "AWS.M2.CARDDEMO.PAUTDB.ROOT.FILEO"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.PAUTDB.CHILD.FILEO",
+        "AWS.M2.CARDDEMO.PAUTDB.ROOT.FILEO"
+      ],
+      "utilities": [
+        "IEFBR14"
+      ],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 11.1,
+      "size": "L",
+      "sessions": 2,
+      "review_hours": 3.9,
+      "risks": [
+        "1 COMP-3 fields: use Decimal, never float",
+        "IMS DL/I calls: hierarchical DB needs a target data-model decision"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "EXECUTE IMS PROGRAM FSVSAMP   DD DUMMY",
+      "loc": 207
+    },
+    {
+      "id": "B-WAITSTEP",
+      "title": "Batch job WAITSTEP",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "COBSWAIT"
+      ],
+      "jobs": [
+        "WAITSTEP"
+      ],
+      "copybooks_private": [],
+      "copybooks_shared": [],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [],
+      "points": 0.2,
+      "size": "S",
+      "sessions": 1,
+      "review_hours": 0.1,
+      "risks": [],
+      "harness": "ready",
+      "harness_detail": "no file I/O: compare SYSOUT and return code",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler (AWS Lambda / Step Functions), records via shared codecs",
+      "description": "WAIT FOR CENTISECONDS IN THE PARM EG: 00003600  = 36 SECONDS",
+      "loc": 13
+    },
+    {
+      "id": "O-COACCT01",
+      "title": "Extension screen COACCT01 (app-vsam-mq)",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "COACCT01"
+      ],
+      "jobs": [],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CVACT01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 13.3,
+      "size": "L",
+      "sessions": 3,
+      "review_hours": 4.7,
+      "risks": [
+        "1 COMP-3 fields: use Decimal, never float",
+        "2 REDEFINES: overlapping storage, needs explicit union decoding",
+        "MQ messaging: pick SQS/MSK equivalent and preserve message semantics"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "",
+      "loc": 500
+    },
+    {
+      "id": "O-COACTUPC",
+      "title": "Online screen COACTUPC",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COACTUPC"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COACTUP",
+        "CSLKPCDY",
+        "CSUTLDPY"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSMSG02Y",
+        "CSSETATY",
+        "CSSTRPFY",
+        "CSUSR01Y",
+        "CSUTLDWY",
+        "CVACT01Y",
+        "CVACT03Y",
+        "CVCRD01Y",
+        "CVCUS01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.AIX.PATH",
+        "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS"
+      ],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 99.5,
+      "size": "XL",
+      "sessions": 17,
+      "review_hours": 34.8,
+      "risks": [
+        "4 COMP-3 fields: use Decimal, never float",
+        "43 REDEFINES: overlapping storage, needs explicit union decoding",
+        "51 GO TOs: unstructured control flow, translate paragraph-by-paragraph",
+        "date arithmetic: check century/Lilian-day semantics",
+        "3368 LOC in one program: split into sub-sessions by paragraph section"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Accept and process ACCOUNT UPDATE                *",
+      "loc": 3368
+    },
+    {
+      "id": "O-COACTVWC",
+      "title": "Online screen COACTVWC",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COACTVWC"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COACTVW"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSMSG02Y",
+        "CSSTRPFY",
+        "CSUSR01Y",
+        "CVACT01Y",
+        "CVACT02Y",
+        "CVACT03Y",
+        "CVCRD01Y",
+        "CVCUS01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.AIX.PATH",
+        "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 17.5,
+      "size": "XL",
+      "sessions": 3,
+      "review_hours": 6.1,
+      "risks": [
+        "2 REDEFINES: overlapping storage, needs explicit union decoding",
+        "9 GO TOs: unstructured control flow, translate paragraph-by-paragraph",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Accept and process Account View request          *",
+      "loc": 703
+    },
+    {
+      "id": "O-COADM01C",
+      "title": "Online screen COADM01C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COADM01C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COADM01",
+        "COADM02Y"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSUSR01Y"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 4.6,
+      "size": "M",
+      "sessions": 1,
+      "review_hours": 1.6,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Admin Menu for Admin users",
+      "loc": 189
+    },
+    {
+      "id": "O-COBIL00C",
+      "title": "Online screen COBIL00C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COBIL00C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COBIL00"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CVACT01Y",
+        "CVACT03Y",
+        "CVTRA05Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.AIX.PATH",
+        "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+      ],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 9.0,
+      "size": "L",
+      "sessions": 2,
+      "review_hours": 3.1,
+      "risks": [
+        "1 COMP-3 fields: use Decimal, never float",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Bill Payment - Pay account balance in full and a",
+      "loc": 420
+    },
+    {
+      "id": "O-COCRDLIC",
+      "title": "Online screen COCRDLIC",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COCRDLIC"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COCRDLI"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSSTRPFY",
+        "CSUSR01Y",
+        "CVACT02Y",
+        "CVCRD01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 30.2,
+      "size": "XL",
+      "sessions": 6,
+      "review_hours": 10.6,
+      "risks": [
+        "1 COMP-3 fields: use Decimal, never float",
+        "16 GO TOs: unstructured control flow, translate paragraph-by-paragraph",
+        "6 REDEFINES: overlapping storage, needs explicit union decoding",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "List Credit Cards",
+      "loc": 1093
+    },
+    {
+      "id": "O-COCRDSLC",
+      "title": "Online screen COCRDSLC",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COCRDSLC"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COCRDSL"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSMSG02Y",
+        "CSSTRPFY",
+        "CSUSR01Y",
+        "CVACT02Y",
+        "CVCRD01Y",
+        "CVCUS01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.CARDDATA.VSAM.AIX.PATH",
+        "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 18.0,
+      "size": "XL",
+      "sessions": 3,
+      "review_hours": 6.3,
+      "risks": [
+        "6 REDEFINES: overlapping storage, needs explicit union decoding",
+        "9 GO TOs: unstructured control flow, translate paragraph-by-paragraph",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Accept and process credit card detail request    *",
+      "loc": 642
+    },
+    {
+      "id": "O-COCRDUPC",
+      "title": "Online screen COCRDUPC",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COCRDUPC"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COCRDUP"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSMSG02Y",
+        "CSSTRPFY",
+        "CSUSR01Y",
+        "CVACT02Y",
+        "CVCRD01Y",
+        "CVCUS01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS"
+      ],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 35.3,
+      "size": "XL",
+      "sessions": 6,
+      "review_hours": 12.4,
+      "risks": [
+        "21 GO TOs: unstructured control flow, translate paragraph-by-paragraph",
+        "8 REDEFINES: overlapping storage, needs explicit union decoding",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Accept and process credit card detail request    *",
+      "loc": 1194
+    },
+    {
+      "id": "O-CODATE01",
+      "title": "Extension screen CODATE01 (app-vsam-mq)",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "CODATE01"
+      ],
+      "jobs": [],
+      "copybooks_private": [],
+      "copybooks_shared": [],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 11.4,
+      "size": "L",
+      "sessions": 2,
+      "review_hours": 4.0,
+      "risks": [
+        "1 COMP-3 fields: use Decimal, never float",
+        "MQ messaging: pick SQS/MSK equivalent and preserve message semantics"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "",
+      "loc": 409
+    },
+    {
+      "id": "O-COMEN01C",
+      "title": "Online screen COMEN01C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COMEN01C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COMEN01",
+        "COMEN02Y"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSUSR01Y"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 5.2,
+      "size": "M",
+      "sessions": 1,
+      "review_hours": 1.8,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Main Menu for the Regular users",
+      "loc": 213
+    },
+    {
+      "id": "O-COPAUA0C",
+      "title": "Extension screen COPAUA0C (app-authorization-ims-db2-mq)",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "COPAUA0C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "CCPAUERY",
+        "CCPAURLY",
+        "CCPAURQY"
+      ],
+      "copybooks_shared": [
+        "CIPAUDTY",
+        "CIPAUSMY",
+        "CVACT01Y",
+        "CVACT03Y",
+        "CVCUS01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 24.9,
+      "size": "XL",
+      "sessions": 5,
+      "review_hours": 8.7,
+      "risks": [
+        "2 REDEFINES: overlapping storage, needs explicit union decoding",
+        "3 COMP-3 fields: use Decimal, never float",
+        "IMS DL/I calls: hierarchical DB needs a target data-model decision",
+        "MQ messaging: pick SQS/MSK equivalent and preserve message semantics",
+        "writes a TD queue (likely submits batch JCL via internal reader) -- becomes a job trigger"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Card Authorization Decision Program",
+      "loc": 771
+    },
+    {
+      "id": "O-COPAUS0C",
+      "title": "Extension screen COPAUS0C (app-authorization-ims-db2-mq)",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "COPAUS0C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COPAU00"
+      ],
+      "copybooks_shared": [
+        "CIPAUDTY",
+        "CIPAUSMY",
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSMSG02Y",
+        "CVACT01Y",
+        "CVACT02Y",
+        "CVACT03Y",
+        "CVCUS01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.AIX.PATH",
+        "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 23.2,
+      "size": "XL",
+      "sessions": 4,
+      "review_hours": 8.1,
+      "risks": [
+        "2 REDEFINES: overlapping storage, needs explicit union decoding",
+        "IMS DL/I calls: hierarchical DB needs a target data-model decision",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Summary View of Authoriation Messages",
+      "loc": 792
+    },
+    {
+      "id": "O-COPAUS1C",
+      "title": "Extension screen COPAUS1C (app-authorization-ims-db2-mq)",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "COPAUS1C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COPAU01"
+      ],
+      "copybooks_shared": [
+        "CIPAUDTY",
+        "CIPAUSMY",
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSMSG02Y"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 15.8,
+      "size": "L",
+      "sessions": 3,
+      "review_hours": 5.5,
+      "risks": [
+        "IMS DL/I calls: hierarchical DB needs a target data-model decision",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Detail View of Authorization Message",
+      "loc": 461
+    },
+    {
+      "id": "O-COPAUS2C",
+      "title": "Extension screen COPAUS2C (app-authorization-ims-db2-mq)",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "COPAUS2C"
+      ],
+      "jobs": [],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CIPAUDTY"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 5.0,
+      "size": "M",
+      "sessions": 1,
+      "review_hours": 1.8,
+      "risks": [
+        "1 COMP-3 fields: use Decimal, never float",
+        "DB2 SQL on CARDDEMO.AUTHFRDS: map to RDS/Aurora, check isolation levels"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Mark Authorization Message Fraud",
+      "loc": 201
+    },
+    {
+      "id": "O-CORPT00C",
+      "title": "Online screen CORPT00C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "CORPT00C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "CORPT00"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CVTRA05Y"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-SUBPROGS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 18.9,
+      "size": "XL",
+      "sessions": 4,
+      "review_hours": 6.6,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics",
+        "writes a TD queue (likely submits batch JCL via internal reader) -- becomes a job trigger"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Print Transaction reports by submitting batch",
+      "loc": 498
+    },
+    {
+      "id": "O-COSGN00C",
+      "title": "Online screen COSGN00C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COSGN00C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COSGN00"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSUSR01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.USRSEC.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 3.8,
+      "size": "S",
+      "sessions": 1,
+      "review_hours": 1.3,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Signon Screen for the CardDemo Application",
+      "loc": 172
+    },
+    {
+      "id": "O-COTRN00C",
+      "title": "Online screen COTRN00C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COTRN00C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COTRN00"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CVTRA05Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 12.1,
+      "size": "L",
+      "sessions": 3,
+      "review_hours": 4.2,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "List Transactions from TRANSACT file",
+      "loc": 529
+    },
+    {
+      "id": "O-COTRN01C",
+      "title": "Online screen COTRN01C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COTRN01C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COTRN01"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CVTRA05Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 4.5,
+      "size": "M",
+      "sessions": 1,
+      "review_hours": 1.6,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "View a Transaction from TRANSACT file",
+      "loc": 231
+    },
+    {
+      "id": "O-COTRN02C",
+      "title": "Online screen COTRN02C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COTRN02C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COTRN02"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CVACT01Y",
+        "CVACT03Y",
+        "CVTRA05Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.AIX.PATH",
+        "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS",
+        "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+      ],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-SUBPROGS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 20.2,
+      "size": "XL",
+      "sessions": 4,
+      "review_hours": 7.1,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Add a new Transaction to TRANSACT file",
+      "loc": 614
+    },
+    {
+      "id": "O-COTRTLIC",
+      "title": "Extension screen COTRTLIC (app-transaction-type-db2)",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "COTRTLIC"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COTRTLI"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSSTRPFY",
+        "CSUSR01Y",
+        "CVACT02Y",
+        "CVCRD01Y"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 50.2,
+      "size": "XL",
+      "sessions": 9,
+      "review_hours": 17.6,
+      "risks": [
+        "12 REDEFINES: overlapping storage, needs explicit union decoding",
+        "28 GO TOs: unstructured control flow, translate paragraph-by-paragraph",
+        "8 COMP-3 fields: use Decimal, never float",
+        "DB2 SQL on CARDDEMO.TRANSACTION_TYPE: map to RDS/Aurora, check isolation levels",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "List Transaction Type for updates and deletes    *",
+      "loc": 1597
+    },
+    {
+      "id": "O-COTRTUPC",
+      "title": "Extension screen COTRTUPC (app-transaction-type-db2)",
+      "kind": "extension",
+      "wave": 3,
+      "programs": [
+        "COTRTUPC"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COTRTUP"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSMSG02Y",
+        "CSSETATY",
+        "CSSTRPFY",
+        "CSUSR01Y",
+        "CSUTLDWY",
+        "CVCRD01Y"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 38.6,
+      "size": "XL",
+      "sessions": 7,
+      "review_hours": 13.5,
+      "risks": [
+        "1 COMP-3 fields: use Decimal, never float",
+        "2 REDEFINES: overlapping storage, needs explicit union decoding",
+        "23 GO TOs: unstructured control flow, translate paragraph-by-paragraph",
+        "DB2 SQL on CARDDEMO.TRANSACTION_TYPE: map to RDS/Aurora, check isolation levels",
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "blocked",
+      "harness_detail": "needs IMS/DB2/MQ emulation or a target-platform decision first",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Accept and process TRANSACTION TYPE UPDATE        *00040000",
+      "loc": 1241
+    },
+    {
+      "id": "O-COUSR00C",
+      "title": "Online screen COUSR00C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COUSR00C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COUSR00"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSUSR01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.USRSEC.VSAM.KSDS"
+      ],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 12.2,
+      "size": "L",
+      "sessions": 3,
+      "review_hours": 4.3,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "List all users from USRSEC file",
+      "loc": 531
+    },
+    {
+      "id": "O-COUSR01C",
+      "title": "Online screen COUSR01C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COUSR01C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COUSR01"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSUSR01Y"
+      ],
+      "reads": [],
+      "writes": [
+        "AWS.M2.CARDDEMO.USRSEC.VSAM.KSDS"
+      ],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 4.2,
+      "size": "M",
+      "sessions": 1,
+      "review_hours": 1.5,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Add a new Regular/Admin user to USRSEC file",
+      "loc": 198
+    },
+    {
+      "id": "O-COUSR02C",
+      "title": "Online screen COUSR02C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COUSR02C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COUSR02"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSUSR01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.USRSEC.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.USRSEC.VSAM.KSDS"
+      ],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 6.6,
+      "size": "M",
+      "sessions": 2,
+      "review_hours": 2.3,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Update a user in USRSEC file",
+      "loc": 303
+    },
+    {
+      "id": "O-COUSR03C",
+      "title": "Online screen COUSR03C",
+      "kind": "online",
+      "wave": 2,
+      "programs": [
+        "COUSR03C"
+      ],
+      "jobs": [],
+      "copybooks_private": [
+        "COUSR03"
+      ],
+      "copybooks_shared": [
+        "COCOM01Y",
+        "COTTL01Y",
+        "CSDAT01Y",
+        "CSMSG01Y",
+        "CSUSR01Y"
+      ],
+      "reads": [
+        "AWS.M2.CARDDEMO.USRSEC.VSAM.KSDS"
+      ],
+      "writes": [
+        "AWS.M2.CARDDEMO.USRSEC.VSAM.KSDS"
+      ],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS",
+        "F-ONLINE-PLATFORM"
+      ],
+      "points": 5.3,
+      "size": "M",
+      "sessions": 1,
+      "review_hours": 1.9,
+      "risks": [
+        "date arithmetic: check century/Lilian-day semantics"
+      ],
+      "harness": "replay",
+      "harness_detail": "screen-flow replay: record 3270 inputs/outputs per transaction, diff field-by-field",
+      "intermediate": [],
+      "target": "Python service (FastAPI on Lambda) + React form replacing BMS map",
+      "description": "Delete a user from USRSEC file",
+      "loc": 251
+    },
+    {
+      "id": "B-CBTRN01C",
+      "title": "Unscheduled program CBTRN01C",
+      "kind": "batch",
+      "wave": 1,
+      "programs": [
+        "CBTRN01C"
+      ],
+      "jobs": [],
+      "copybooks_private": [],
+      "copybooks_shared": [
+        "CVACT01Y",
+        "CVACT02Y",
+        "CVACT03Y",
+        "CVCUS01Y",
+        "CVTRA05Y",
+        "CVTRA06Y"
+      ],
+      "reads": [],
+      "writes": [],
+      "utilities": [],
+      "depends_on": [
+        "F-CODECS"
+      ],
+      "points": 11.9,
+      "size": "L",
+      "sessions": 2,
+      "review_hours": 4.2,
+      "risks": [
+        "LE abend (CEE3ABD): map to explicit error exit codes"
+      ],
+      "harness": "blocked",
+      "harness_detail": "no JCL binds this program's files -- find its job or confirm it is dead code",
+      "intermediate": [],
+      "target": "Python 3.12 batch handler",
+      "description": "Post the records from daily transaction file. (no JCL found -- confirm it is still in use)",
+      "loc": 415
+    }
+  ],
+  "cutover": [
+    [
+      "B-CBTRN01C"
+    ],
+    [
+      "B-WAITSTEP"
+    ],
+    [
+      "B-READXREF"
+    ],
+    [
+      "B-READCUST"
+    ],
+    [
+      "B-READCARD"
+    ],
+    [
+      "B-INTCALC",
+      "B-POSTTRAN"
+    ],
+    [
+      "B-TRANREPT"
+    ],
+    [
+      "B-READACCT"
+    ],
+    [
+      "B-CREASTMT"
+    ],
+    [
+      "B-CBEXPORT"
+    ],
+    [
+      "B-CBIMPORT"
+    ]
+  ],
+  "datasets": {
+    "AWS.M2.CARDDEMO.ACCTDATA.ARRYPS": {
+      "readers": [],
+      "writers": [
+        "B-READACCT"
+      ],
+      "seed": "acctdata.txt"
+    },
+    "AWS.M2.CARDDEMO.ACCTDATA.IMPORT": {
+      "readers": [],
+      "writers": [
+        "B-CBIMPORT"
+      ],
+      "seed": "acctdata.txt"
+    },
+    "AWS.M2.CARDDEMO.ACCTDATA.PSCOMP": {
+      "readers": [],
+      "writers": [
+        "B-READACCT"
+      ],
+      "seed": "acctdata.txt"
+    },
+    "AWS.M2.CARDDEMO.ACCTDATA.VBPS": {
+      "readers": [],
+      "writers": [
+        "B-READACCT"
+      ],
+      "seed": "acctdata.txt"
+    },
+    "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS": {
+      "readers": [
+        "B-CBEXPORT",
+        "B-INTCALC",
+        "B-POSTTRAN",
+        "B-READACCT",
+        "O-COACCT01",
+        "O-COACTUPC",
+        "O-COACTVWC",
+        "O-COBIL00C",
+        "O-COPAUA0C",
+        "O-COPAUS0C"
+      ],
+      "writers": [
+        "B-INTCALC",
+        "B-POSTTRAN",
+        "O-COACTUPC",
+        "O-COBIL00C"
+      ],
+      "seed": "acctdata.txt"
+    },
+    "AWS.M2.CARDDEMO.CARDDATA.VSAM.AIX.PATH": {
+      "readers": [
+        "O-COCRDSLC"
+      ],
+      "writers": [],
+      "seed": "carddata.txt"
+    },
+    "AWS.M2.CARDDEMO.CARDDATA.VSAM.KSDS": {
+      "readers": [
+        "B-CBEXPORT",
+        "B-READCARD",
+        "O-COCRDLIC",
+        "O-COCRDSLC",
+        "O-COCRDUPC"
+      ],
+      "writers": [
+        "O-COCRDUPC"
+      ],
+      "seed": "carddata.txt"
+    },
+    "AWS.M2.CARDDEMO.CARDXREF.IMPORT": {
+      "readers": [],
+      "writers": [
+        "B-CBIMPORT"
+      ],
+      "seed": "cardxref.txt"
+    },
+    "AWS.M2.CARDDEMO.CARDXREF.VSAM.AIX.PATH": {
+      "readers": [
+        "O-COACTUPC",
+        "O-COACTVWC",
+        "O-COBIL00C",
+        "O-COPAUS0C",
+        "O-COTRN02C"
+      ],
+      "writers": [],
+      "seed": "cardxref.txt"
+    },
+    "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS": {
+      "readers": [
+        "B-CBEXPORT",
+        "B-INTCALC",
+        "B-POSTTRAN",
+        "B-READXREF",
+        "B-TRANREPT",
+        "O-COPAUA0C",
+        "O-COTRN02C"
+      ],
+      "writers": [],
+      "seed": "cardxref.txt"
+    },
+    "AWS.M2.CARDDEMO.CUSTDATA.IMPORT": {
+      "readers": [],
+      "writers": [
+        "B-CBIMPORT"
+      ],
+      "seed": "custdata.txt"
+    },
+    "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS": {
+      "readers": [
+        "B-CBEXPORT",
+        "B-READCUST",
+        "O-COACTUPC",
+        "O-COACTVWC",
+        "O-COPAUA0C",
+        "O-COPAUS0C"
+      ],
+      "writers": [
+        "O-COACTUPC"
+      ],
+      "seed": "custdata.txt"
+    },
+    "AWS.M2.CARDDEMO.DALYREJS": {
+      "readers": [],
+      "writers": [
+        "B-POSTTRAN"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.DALYTRAN.PS": {
+      "readers": [
+        "B-POSTTRAN"
+      ],
+      "writers": [],
+      "seed": "dailytran.txt"
+    },
+    "AWS.M2.CARDDEMO.DATEPARM": {
+      "readers": [
+        "B-TRANREPT"
+      ],
+      "writers": [],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.DISCGRP.VSAM.KSDS": {
+      "readers": [
+        "B-INTCALC"
+      ],
+      "writers": [],
+      "seed": "discgrp.txt"
+    },
+    "AWS.M2.CARDDEMO.EXPORT.DATA": {
+      "readers": [
+        "B-CBIMPORT"
+      ],
+      "writers": [
+        "B-CBEXPORT"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.IMPORT.ERRORS": {
+      "readers": [],
+      "writers": [
+        "B-CBIMPORT"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.PAUTDB.CHILD.FILEO": {
+      "readers": [
+        "B-LOADPADB",
+        "B-UNLDPADB"
+      ],
+      "writers": [
+        "B-UNLDPADB"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.PAUTDB.ROOT.FILEO": {
+      "readers": [
+        "B-LOADPADB",
+        "B-UNLDPADB"
+      ],
+      "writers": [
+        "B-UNLDPADB"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.STATEMNT.HTML": {
+      "readers": [],
+      "writers": [
+        "B-CREASTMT"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.STATEMNT.PS": {
+      "readers": [],
+      "writers": [
+        "B-CREASTMT"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.SYSTRAN": {
+      "readers": [],
+      "writers": [
+        "B-INTCALC"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS": {
+      "readers": [
+        "B-INTCALC",
+        "B-POSTTRAN"
+      ],
+      "writers": [
+        "B-POSTTRAN"
+      ],
+      "seed": "tcatbal.txt"
+    },
+    "AWS.M2.CARDDEMO.TRANCATG.VSAM.KSDS": {
+      "readers": [
+        "B-TRANREPT"
+      ],
+      "writers": [],
+      "seed": "trancatg.txt"
+    },
+    "AWS.M2.CARDDEMO.TRANREPT": {
+      "readers": [],
+      "writers": [
+        "B-TRANREPT"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.TRANSACT.BKUP": {
+      "readers": [],
+      "writers": [
+        "B-TRANREPT"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.TRANSACT.DALY": {
+      "readers": [],
+      "writers": [
+        "B-TRANREPT"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.TRANSACT.IMPORT": {
+      "readers": [],
+      "writers": [
+        "B-CBIMPORT"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS": {
+      "readers": [
+        "B-CBEXPORT",
+        "B-CREASTMT",
+        "B-TRANREPT",
+        "O-COBIL00C",
+        "O-COTRN00C",
+        "O-COTRN01C",
+        "O-COTRN02C"
+      ],
+      "writers": [
+        "B-POSTTRAN",
+        "O-COBIL00C",
+        "O-COTRN02C"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.TRANTYPE.VSAM.KSDS": {
+      "readers": [
+        "B-TRANREPT"
+      ],
+      "writers": [],
+      "seed": "trantype.txt"
+    },
+    "AWS.M2.CARDDEMO.TRXFL.SEQ": {
+      "readers": [],
+      "writers": [
+        "B-CREASTMT"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.TRXFL.VSAM.KSDS": {
+      "readers": [],
+      "writers": [
+        "B-CREASTMT"
+      ],
+      "seed": null
+    },
+    "AWS.M2.CARDDEMO.USRSEC.VSAM.KSDS": {
+      "readers": [
+        "O-COSGN00C",
+        "O-COUSR00C",
+        "O-COUSR02C",
+        "O-COUSR03C"
+      ],
+      "writers": [
+        "O-COUSR01C",
+        "O-COUSR02C",
+        "O-COUSR03C"
+      ],
+      "seed": null
+    },
+    "INPFILE": {
+      "readers": [
+        "B-MNTTRDB2"
+      ],
+      "writers": [],
+      "seed": null
+    }
+  },
+  "data_edges": [
+    [
+      "B-CBEXPORT",
+      "B-CBIMPORT",
+      "AWS.M2.CARDDEMO.EXPORT.DATA"
+    ],
+    [
+      "B-INTCALC",
+      "B-CBEXPORT",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-INTCALC",
+      "B-POSTTRAN",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-INTCALC",
+      "B-READACCT",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-INTCALC",
+      "O-COACCT01",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-INTCALC",
+      "O-COACTUPC",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-INTCALC",
+      "O-COACTVWC",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-INTCALC",
+      "O-COBIL00C",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-INTCALC",
+      "O-COPAUA0C",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-INTCALC",
+      "O-COPAUS0C",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "B-CBEXPORT",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "B-CBEXPORT",
+      "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "B-CREASTMT",
+      "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "B-INTCALC",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "B-INTCALC",
+      "AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "B-READACCT",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "B-TRANREPT",
+      "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "O-COACCT01",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "O-COACTUPC",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "O-COACTVWC",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "O-COBIL00C",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "O-COBIL00C",
+      "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "O-COPAUA0C",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "O-COPAUS0C",
+      "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "O-COTRN00C",
+      "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "O-COTRN01C",
+      "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+    ],
+    [
+      "B-POSTTRAN",
+      "O-COTRN02C",
+      "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+    ],
+    [
+      "B-UNLDPADB",
+      "B-LOADPADB",
+      "AWS.M2.CARDDEMO.PAUTDB.CHILD.FILEO"
+    ],
+    [
+      "B-UNLDPADB",
+      "B-LOADPADB",
+      "AWS.M2.CARDDEMO.PAUTDB.ROOT.FILEO"
+    ]
+  ],
+  "schedule_edges": [
+    [
+      "DAILY-TransactionBackup",
+      "B-CLOSEFIL",
+      "B-TRANBKP"
+    ],
+    [
+      "DAILY-TransactionBackup",
+      "B-TRANBKP",
+      "B-WAITSTEP"
+    ],
+    [
+      "DAILY-TransactionBackup",
+      "B-WAITSTEP",
+      "B-OPENFIL"
+    ],
+    [
+      "WEEKLY-DisclosureGroupsRefresh",
+      "B-MNTTRDB2",
+      "B-CLOSEFIL"
+    ],
+    [
+      "WEEKLY-DisclosureGroupsRefresh",
+      "B-CLOSEFIL",
+      "B-DISCGRP"
+    ],
+    [
+      "WEEKLY-DisclosureGroupsRefresh",
+      "B-DISCGRP",
+      "B-WAITSTEP"
+    ],
+    [
+      "WEEKLY-DisclosureGroupsRefresh",
+      "B-WAITSTEP",
+      "B-OPENFIL"
+    ],
+    [
+      "WEEKLY-TransactionTypesDBRefresh",
+      "B-MNTTRDB2",
+      "B-TRANEXTR"
+    ],
+    [
+      "MONTHLY-InterestCalculation",
+      "B-CLOSEFIL",
+      "B-INTCALC"
+    ],
+    [
+      "MONTHLY-InterestCalculation",
+      "B-INTCALC",
+      "B-COMBTRAN"
+    ],
+    [
+      "MONTHLY-InterestCalculation",
+      "B-COMBTRAN",
+      "B-WAITSTEP"
+    ],
+    [
+      "MONTHLY-InterestCalculation",
+      "B-WAITSTEP",
+      "B-OPENFIL"
+    ]
+  ],
+  "program_edges": [
+    [
+      "COPAUS0C",
+      "COMEN01C",
+      "XCTL?"
+    ],
+    [
+      "COPAUS0C",
+      "COPAUS1C",
+      "XCTL?"
+    ],
+    [
+      "COPAUS1C",
+      "COPAUS2C",
+      "XCTL"
+    ],
+    [
+      "COPAUS1C",
+      "COPAUS0C",
+      "XCTL?"
+    ],
+    [
+      "COTRTLIC",
+      "COTRTUPC",
+      "XCTL"
+    ],
+    [
+      "COTRTLIC",
+      "COADM01C",
+      "XCTL?"
+    ],
+    [
+      "COTRTUPC",
+      "COADM01C",
+      "XCTL?"
+    ],
+    [
+      "COTRTUPC",
+      "COTRTLIC",
+      "XCTL?"
+    ],
+    [
+      "CBSTM03A",
+      "CBSTM03B",
+      "CALL"
+    ],
+    [
+      "COACTUPC",
+      "COCRDLIC",
+      "XCTL?"
+    ],
+    [
+      "COACTUPC",
+      "COCRDSLC",
+      "XCTL?"
+    ],
+    [
+      "COACTUPC",
+      "COCRDUPC",
+      "XCTL?"
+    ],
+    [
+      "COACTUPC",
+      "COMEN01C",
+      "XCTL?"
+    ],
+    [
+      "COACTVWC",
+      "COCRDLIC",
+      "XCTL?"
+    ],
+    [
+      "COACTVWC",
+      "COCRDSLC",
+      "XCTL?"
+    ],
+    [
+      "COACTVWC",
+      "COCRDUPC",
+      "XCTL?"
+    ],
+    [
+      "COACTVWC",
+      "COMEN01C",
+      "XCTL?"
+    ],
+    [
+      "COADM01C",
+      "COTRTLIC",
+      "XCTL?"
+    ],
+    [
+      "COADM01C",
+      "COTRTUPC",
+      "XCTL?"
+    ],
+    [
+      "COADM01C",
+      "COUSR00C",
+      "XCTL?"
+    ],
+    [
+      "COADM01C",
+      "COUSR01C",
+      "XCTL?"
+    ],
+    [
+      "COADM01C",
+      "COUSR02C",
+      "XCTL?"
+    ],
+    [
+      "COADM01C",
+      "COUSR03C",
+      "XCTL?"
+    ],
+    [
+      "COCRDLIC",
+      "COMEN01C",
+      "XCTL"
+    ],
+    [
+      "COCRDLIC",
+      "COCRDSLC",
+      "XCTL?"
+    ],
+    [
+      "COCRDLIC",
+      "COCRDUPC",
+      "XCTL?"
+    ],
+    [
+      "COCRDSLC",
+      "COCRDLIC",
+      "XCTL?"
+    ],
+    [
+      "COCRDSLC",
+      "COMEN01C",
+      "XCTL?"
+    ],
+    [
+      "COCRDUPC",
+      "COCRDLIC",
+      "XCTL?"
+    ],
+    [
+      "COCRDUPC",
+      "COCRDSLC",
+      "XCTL?"
+    ],
+    [
+      "COCRDUPC",
+      "COMEN01C",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "COACTUPC",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "COACTVWC",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "COBIL00C",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "COCRDLIC",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "COCRDSLC",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "COCRDUPC",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "COPAUS0C",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "CORPT00C",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "COTRN00C",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "COTRN01C",
+      "XCTL?"
+    ],
+    [
+      "COMEN01C",
+      "COTRN02C",
+      "XCTL?"
+    ],
+    [
+      "CORPT00C",
+      "CSUTLDTC",
+      "CALL"
+    ],
+    [
+      "COSGN00C",
+      "COADM01C",
+      "XCTL"
+    ],
+    [
+      "COSGN00C",
+      "COMEN01C",
+      "XCTL"
+    ],
+    [
+      "COTRN02C",
+      "CSUTLDTC",
+      "CALL"
+    ]
+  ],
+  "shared_copybooks": [
+    "CIPAUDTY",
+    "CIPAUSMY",
+    "COCOM01Y",
+    "COTTL01Y",
+    "CSDAT01Y",
+    "CSMSG01Y",
+    "CSMSG02Y",
+    "CSSETATY",
+    "CSSTRPFY",
+    "CSUSR01Y",
+    "CSUTLDWY",
+    "CVACT01Y",
+    "CVACT02Y",
+    "CVACT03Y",
+    "CVCRD01Y",
+    "CVCUS01Y",
+    "CVEXPORT",
+    "CVTRA01Y",
+    "CVTRA05Y",
+    "CVTRA06Y",
+    "IMSFUNCS",
+    "PAUTBPCB"
+  ],
+  "seeds": [
+    "acctdata.txt",
+    "carddata.txt",
+    "cardxref.txt",
+    "custdata.txt",
+    "dailytran.txt",
+    "discgrp.txt",
+    "tcatbal.txt",
+    "trancatg.txt",
+    "trantype.txt"
+  ]
+}
