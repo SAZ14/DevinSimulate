@@ -2,8 +2,9 @@
 
 VSAM cluster attributes (keys, record size) and seed lineage are read from
 CardDemo's own IDCAMS JCL (DEFINE CLUSTER / REPRO), so they come from the
-source.  The one hand-written table is SEEDS: which file in
-legacy/app/data/ASCII holds each uploaded PS dataset, and its LRECL.
+source.  The hand-written tables are SEEDS (which file in
+legacy/app/data/ASCII holds each uploaded PS dataset, and its LRECL) and
+RAW_SEEDS (datasets taken byte-for-byte from legacy/app/data/EBCDIC).
 """
 from __future__ import annotations
 
@@ -17,6 +18,7 @@ REPO = Path(__file__).resolve().parents[1]
 LEGACY_APP = REPO / "legacy" / "app"
 JCL_DIR = LEGACY_APP / "jcl"
 ASCII_DIR = LEGACY_APP / "data" / "ASCII"
+EBCDIC_DIR = LEGACY_APP / "data" / "EBCDIC"
 
 # PS dataset -> (file in data/ASCII, LRECL).  Each LRECL equals the size of
 # the matching file in data/EBCDIC divided by its record count; see
@@ -31,6 +33,13 @@ SEEDS: dict[str, tuple[str, int]] = {
     "AWS.M2.CARDDEMO.TCATBALF.PS": ("tcatbal.txt", 50),
     "AWS.M2.CARDDEMO.TRANCATG.PS": ("trancatg.txt", 60),
     "AWS.M2.CARDDEMO.TRANTYPE.PS": ("trantype.txt", 60),
+}
+
+# Datasets with no ASCII seed, loaded byte-for-byte from data/EBCDIC (W15).
+# DALYTRAN.PS.INIT is the single 350-byte priming record TRANFILE.jcl REPROs
+# into TRANSACT.VSAM.KSDS: low-value key and body, ending in EBCDIC '00000100'.
+RAW_SEEDS: dict[str, tuple[str, int]] = {
+    "AWS.M2.CARDDEMO.DALYTRAN.PS.INIT": ("AWS.M2.CARDDEMO.DALYTRAN.PS.INIT", 350),
 }
 
 
@@ -55,10 +64,14 @@ class Catalog:
     # first file in name order wins, and the runner refuses to seed from these
     repro_conflicts: dict[str, set[tuple[str, str]]] = field(default_factory=dict)
 
-    def seed_for(self, dsn: str) -> tuple[Path, int] | None:
+    def seed_for(self, dsn: str) -> tuple[Path, int, str] | None:
+        """(file, LRECL, mode): mode 'text' (ASCII lines) or 'raw' (FB bytes)."""
         if dsn in SEEDS:
             name, lrecl = SEEDS[dsn]
-            return ASCII_DIR / name, lrecl
+            return ASCII_DIR / name, lrecl, "text"
+        if dsn in RAW_SEEDS:
+            name, lrecl = RAW_SEEDS[dsn]
+            return EBCDIC_DIR / name, lrecl, "raw"
         return None
 
 
@@ -141,6 +154,17 @@ def build_catalog(jcl_dir: Path = JCL_DIR) -> Catalog:
         if base in clusters and aix not in clusters[base].aix:
             clusters[base].aix.append(aix)
     return Catalog(clusters=clusters, repro=repro, gdg_bases=gdg, repro_conflicts=conflicts)
+
+
+def load_seed(path: Path, lrecl: int, mode: str) -> tuple[bytes, dict]:
+    if mode == "text":
+        return fb_from_seed(path, lrecl)
+    if mode != "raw":
+        raise ValueError(mode)
+    data = path.read_bytes()
+    if len(data) % lrecl:
+        raise ValueError(f"{path.name}: {len(data)} bytes is not a multiple of LRECL {lrecl}")
+    return data, {"records": len(data) // lrecl, "raw_bytes": True}
 
 
 def fb_from_seed(path: Path, lrecl: int) -> tuple[bytes, dict]:

@@ -38,7 +38,7 @@ if __package__ in (None, ""):                       # python runner/run_legacy.p
 
 from . import build                                  # noqa: E402
 from .catalog import (JCL_DIR, REPO, Catalog, build_catalog,  # noqa: E402
-                      fb_from_seed, find_job)
+                      find_job, load_seed)
 from .jcl import DD, Job, Step, UnsupportedJCL, parse_jcl  # noqa: E402
 
 LEGACY_COMMIT = "59cc6c2fd7ebd7ef7925cad552a01a4b8b6e4d5e"   # docs/legacy-setup.md W1
@@ -140,11 +140,11 @@ class JobRun:
             if seed is None:
                 raise NeedsUpstream(
                     f"{where}: KSDS {dsn} is loaded from {src[0] if src else '(nothing)'} "
-                    f"in {cl.defined_in}, which has no seed in legacy/app/data/ASCII")
-            seed_path, lrecl = seed
+                    f"in {cl.defined_in}, which has no seed in legacy/app/data")
+            seed_path, lrecl, mode = seed
             if lrecl != cl.rec_max or cl.rec_avg != cl.rec_max:
                 raise UnsupportedJCL(f"{dsn}: variable RECORDSIZE({cl.rec_avg} {cl.rec_max})")
-            image, stats = fb_from_seed(seed_path, lrecl)
+            image, stats = load_seed(seed_path, lrecl, mode)
             ps = self.work / "seed" / src[0]
             ps.parent.mkdir(exist_ok=True)
             ps.write_bytes(image)
@@ -165,8 +165,8 @@ class JobRun:
             if seed is None:
                 raise NeedsUpstream(f"{where}: {dsn} has no seed and was not created earlier "
                                     "in this job (needs a golden run of the upstream job)")
-            seed_path, lrecl = seed
-            image, stats = fb_from_seed(seed_path, lrecl)
+            seed_path, lrecl, mode = seed
+            image, stats = load_seed(seed_path, lrecl, mode)
             self.path_for(dsn).write_bytes(image)
             self.loads.append({"dsn": dsn, "seed": seed_path.name, "seed_normalisation": stats})
             ds = Dataset(dsn, self.path_for(dsn), "PS", "seed", lrecl, "FB",

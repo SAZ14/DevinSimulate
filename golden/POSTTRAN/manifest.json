@@ -1,0 +1,285 @@
+{
+  "clock_check": "2026011512000000+0000",
+  "cobc_flags": [
+    "-x",
+    "-std=ibm",
+    "-fbinary-truncate",
+    "-fsign=EBCDIC"
+  ],
+  "datasets": {
+    "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS": {
+      "bytes": 15000,
+      "file": "datasets/AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS.unload",
+      "lrecl": 300,
+      "note": "KSDS unloaded to fixed-length records in key order",
+      "org": "KSDS",
+      "recfm": "F",
+      "records": 50,
+      "role": "updated",
+      "seed": "acctdata.txt",
+      "sha256": "823f660ea3c3423037d12f54d702e105555d61ff739137744dd4b7dc97f57d48"
+    },
+    "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS": {
+      "bytes": 2500,
+      "lrecl": 50,
+      "org": "KSDS",
+      "recfm": "F",
+      "records": 50,
+      "role": "unchanged input",
+      "seed": "cardxref.txt",
+      "sha256": "d49145cf821e7aae049706569b8bf90f6fb52e0fcc53e8099e39beb55e5c7056"
+    },
+    "AWS.M2.CARDDEMO.DALYREJS.G0001V00": {
+      "bytes": 16340,
+      "file": "datasets/AWS.M2.CARDDEMO.DALYREJS.G0001V00",
+      "lrecl": 430,
+      "org": "PS",
+      "recfm": "F",
+      "records": 38,
+      "role": "created",
+      "sha256": "b6ef92c07bee6372a6046bc0f65c7ee4afb75178a8ba91e9383fb74932b88410"
+    },
+    "AWS.M2.CARDDEMO.DALYTRAN.PS": {
+      "bytes": 105000,
+      "lrecl": 350,
+      "org": "PS",
+      "recfm": "FB",
+      "records": 300,
+      "role": "unchanged input",
+      "seed": "dailytran.txt",
+      "sha256": "5b25c7ccc8a5b4716f3a7989342edd9b02b2ff617ce2a6ddc24c1531de4bb317"
+    },
+    "AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS": {
+      "bytes": 5000,
+      "file": "datasets/AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS.unload",
+      "lrecl": 50,
+      "note": "KSDS unloaded to fixed-length records in key order",
+      "org": "KSDS",
+      "recfm": "F",
+      "records": 100,
+      "role": "updated",
+      "seed": "tcatbal.txt",
+      "sha256": "8a8ee5117337f320d55e0aa05dd2ab5fc364aedef46dd9b2bfb7ab3feeb4bca4"
+    },
+    "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS": {
+      "bytes": 91700,
+      "file": "datasets/AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS.unload",
+      "lrecl": 350,
+      "note": "KSDS unloaded to fixed-length records in key order",
+      "org": "KSDS",
+      "recfm": "F",
+      "records": 262,
+      "role": "updated",
+      "seed": "AWS.M2.CARDDEMO.DALYTRAN.PS.INIT",
+      "sha256": "a240bf4cfd7b4726241cbb2444fec22fabb9323044903f220ea4e0ace3dcb814"
+    }
+  },
+  "files": {
+    "sysout/STEP15.DISPLAY": {
+      "bytes": 3394,
+      "sha256": "185cb77e9b4ac1a98d8e5f6eccfc6dc29edad40949859570eaf0c8664c39c19e"
+    },
+    "sysout/STEP15.SYSOUT": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sysout/STEP15.SYSPRINT": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "frozen_clock": {
+    "epoch": 1768478400,
+    "utc": "2026-01-15T12:00:00Z"
+  },
+  "jcl": {
+    "file": "legacy/app/jcl/POSTTRAN.jcl",
+    "sha256": "ecff62c691e6ce101de08690e72ec065bc98bd845744ddf914899097d37c9191"
+  },
+  "job": "POSTTRAN",
+  "legacy_commit": "59cc6c2fd7ebd7ef7925cad552a01a4b8b6e4d5e",
+  "programs": {
+    "CBTRN02C": {
+      "compile_warnings": [],
+      "copybooks": [
+        "CVTRA06Y.cpy",
+        "CVTRA05Y.cpy",
+        "CVACT03Y.cpy",
+        "CVACT01Y.cpy",
+        "CVTRA01Y.cpy"
+      ],
+      "inputs_sha256": "51dd17e3ca2215a2b91dae6e2c4617017f936a11b5b747e27a4ac59b25c6fd5a",
+      "source": "legacy/app/cbl/CBTRN02C.cbl"
+    }
+  },
+  "runtime_env": {
+    "COB_VARSEQ_FORMAT": "0",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "seed_loads": [
+    {
+      "dsn": "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS",
+      "from_dsn": "AWS.M2.CARDDEMO.DALYTRAN.PS.INIT",
+      "loader": "KSLOAD RECORDS=000000001",
+      "seed": "AWS.M2.CARDDEMO.DALYTRAN.PS.INIT",
+      "seed_normalisation": {
+        "raw_bytes": true,
+        "records": 1
+      },
+      "via": "REPRO in TRANFILE.jcl"
+    },
+    {
+      "dsn": "AWS.M2.CARDDEMO.DALYTRAN.PS",
+      "seed": "dailytran.txt",
+      "seed_normalisation": {
+        "crlf": 0,
+        "padded": 0,
+        "records": 300
+      }
+    },
+    {
+      "dsn": "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS",
+      "from_dsn": "AWS.M2.CARDDEMO.CARDXREF.PS",
+      "loader": "KSLOAD RECORDS=000000050",
+      "seed": "cardxref.txt",
+      "seed_normalisation": {
+        "crlf": 0,
+        "padded": 50,
+        "records": 50
+      },
+      "via": "REPRO in XREFFILE.jcl"
+    },
+    {
+      "dsn": "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+      "from_dsn": "AWS.M2.CARDDEMO.ACCTDATA.PS",
+      "loader": "KSLOAD RECORDS=000000050",
+      "seed": "acctdata.txt",
+      "seed_normalisation": {
+        "crlf": 0,
+        "padded": 0,
+        "records": 50
+      },
+      "via": "REPRO in ACCTFILE.jcl"
+    },
+    {
+      "dsn": "AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS",
+      "from_dsn": "AWS.M2.CARDDEMO.TCATBALF.PS",
+      "loader": "KSLOAD RECORDS=000000050",
+      "seed": "tcatbal.txt",
+      "seed_normalisation": {
+        "crlf": 49,
+        "padded": 0,
+        "records": 50
+      },
+      "via": "REPRO in TCATBALF.jcl"
+    }
+  ],
+  "steps": [
+    {
+      "abended": false,
+      "dds": [
+        {
+          "dd": "STEPLIB",
+          "ignored": "load library"
+        },
+        {
+          "dd": "SYSPRINT",
+          "sysout": "*"
+        },
+        {
+          "dd": "SYSOUT",
+          "sysout": "*"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS",
+          "dd": "TRANFILE",
+          "disp": [
+            "SHR",
+            "KEEP",
+            "KEEP"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.DALYTRAN.PS",
+          "dd": "DALYTRAN",
+          "disp": [
+            "SHR",
+            "KEEP",
+            "KEEP"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.DALYTRAN.PS"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS",
+          "dd": "XREFFILE",
+          "disp": [
+            "SHR",
+            "KEEP",
+            "KEEP"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.CARDXREF.VSAM.KSDS"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.DALYREJS(+1)",
+          "dd": "DALYREJS",
+          "disp": [
+            "NEW",
+            "CATLG",
+            "DELETE"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.DALYREJS.G0001V00"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+          "dd": "ACCTFILE",
+          "disp": [
+            "SHR",
+            "KEEP",
+            "KEEP"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS",
+          "dd": "TCATBALF",
+          "disp": [
+            "SHR",
+            "KEEP",
+            "KEEP"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS"
+        }
+      ],
+      "pgm": "CBTRN02C",
+      "result": {
+        "rc": 4
+      },
+      "step": "STEP15"
+    }
+  ],
+  "stubs": {
+    "CEE3ABD": "e4050e0e3cc7af1e6cc84ab06845894ae06b4bf9d45bed93d990ac080f4d32d9",
+    "COBDATFT": "dac298d0681ee6915eecc5844dd635aecd72ed9a5f7ade028596da21b3d22b8e"
+  },
+  "toolchain": {
+    "cobc": "cobc (GnuCOBOL) 3.1.2.0",
+    "gcc": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "indexed_handler": "BDB"
+  },
+  "verification": {
+    "compared": [
+      "datasets/AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS.unload",
+      "datasets/AWS.M2.CARDDEMO.DALYREJS.G0001V00",
+      "datasets/AWS.M2.CARDDEMO.TCATBALF.VSAM.KSDS.unload",
+      "datasets/AWS.M2.CARDDEMO.TRANSACT.VSAM.KSDS.unload",
+      "manifest.json",
+      "sysout/STEP15.DISPLAY",
+      "sysout/STEP15.SYSOUT",
+      "sysout/STEP15.SYSPRINT"
+    ],
+    "identical_runs": 2
+  }
+}
