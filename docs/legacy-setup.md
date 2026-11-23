@@ -18,6 +18,7 @@ batch programs locally and capture golden output. Each entry says **what**,
 | C compiler | gcc 13.3.0 (stubs, clock shim) |
 | Indexed file handler | Berkeley DB 5.3 (BDB), built into the Ubuntu package |
 | Legacy source | `aws-samples/aws-mainframe-modernization-carddemo` @ `59cc6c2fd7ebd7ef7925cad552a01a4b8b6e4d5e` (2025-10-16) |
+| Cloud environment | personal "DevinSimulate" environment: network allows `www.ibm.com` (for the D5 citations) plus package registries; its setup script runs `apt-get install gnucobol3`. The script hasn't been proven yet: it has never run in a fresh session. |
 
 ## How to run
 
@@ -249,6 +250,34 @@ with their sha256 but not copied.
   because the JCL allocates them, and stay empty unless a program opens them
   as files.
 
+### W15. TRANSACT primed from the EBCDIC `DALYTRAN.PS.INIT`, as raw bytes
+- **What:** `TRANFILE.jcl` loads `TRANSACT.VSAM.KSDS` by REPRO from
+  `AWS.M2.CARDDEMO.DALYTRAN.PS.INIT`. That dataset exists only in
+  `legacy/app/data/EBCDIC`, so it's loaded byte for byte (no code-page
+  translation) through `runner/catalog.py:RAW_SEEDS`. It takes the same KSDS
+  load path as every other seed, and the manifest's `seed_loads` records
+  `raw_bytes: true`.
+- **Contents (checked):** one 350-byte record. Bytes 1-16 (the key) are X'00'
+  low-values, and so are bytes 17-342: not blanks. Bytes 343-350 are EBCDIC
+  `00000100` (X'F0F0F0F0F0F1F0F0').
+- **Mixed encoding:** because the record isn't translated, those last 8 bytes
+  stay EBCDIC in an otherwise ASCII run. Low-values are the same in both
+  encodings, so only those 8 bytes differ from a cp037 translation.
+- **Fidelity:** No effect on golden output. POSTTRAN's `OPEN OUTPUT` recreates
+  TRANSACT under GnuCOBOL, so the priming record never reaches
+  `golden/POSTTRAN/`; z/OS would behave differently here, see D5. It only
+  matters to a job that reads TRANSACT before POSTTRAN replaces it.
+
+### W16. GDG generations are numbered within the job's own workspace
+- **What:** `DALYREJS(+1)` resolves to `AWS.M2.CARDDEMO.DALYREJS.G0001V00`.
+  Each run starts from an empty workspace with no prior generations, and
+  relative generations are fixed at job start (z/OS semantics). The base
+  comes from `DALYREJS.jcl` (`DEFINE GENERATIONDATAGROUP`).
+- **Fidelity:** On z/OS the absolute number would follow whatever
+  generations already exist (and LIMIT/SCRATCH would roll old ones off).
+  Only the name differs; the contents don't. The golden file is named
+  `G0001V00` for reproducibility.
+
 ---
 
 ## Divergences: where golden output may differ from the mainframe
@@ -260,7 +289,7 @@ cp500 give the same result), they differ in two places:
 
 | Dataset | Record | Field (copybook) | EBCDIC original | ASCII seed | Affects |
 |---|---|---|---|---|---|
-| ACCTDATA | 49 (acct `00000000049`) | bytes 103-112, `ACCT-ADDR-ZIP` per CVACT01Y | `ZEROAPR   ` | `A000000000` | READACCT SYSOUT (`DISPLAY ACCOUNT-RECORD`); any job that copies the whole record; INTCALC's interest-group lookup |
+| ACCTDATA | 49 (acct `00000000049`) | bytes 103-112, `ACCT-ADDR-ZIP` per CVACT01Y | `ZEROAPR   ` | `A000000000` | READACCT SYSOUT (`DISPLAY ACCOUNT-RECORD`); POSTTRAN's updated ACCTDATA (it rewrites every account, account 49 included, and carries these bytes through); INTCALC's interest-group lookup |
 | DISCGRP | `DEFAULT`, type 07, cat 0001 | interest rate | `00150{` (15.00) | `00000{` | INTCALC |
 
 The other seven files match exactly after W11. Separately, in **both** seed
@@ -298,6 +327,79 @@ translation problem.
   clause, so the mainframe bytes are unknown (often X'00' or spaces).
 - **Hit in READACCT:** every PSCOMP record, bytes 77-78 (the reissue date at bytes 69-78 reads `20250520  `).
 
+### D5. POSTTRAN's `OPEN OUTPUT` on a loaded, non-REUSE TRANSACT KSDS
+**The setup.** `TRANFILE.jcl` defines `TRANSACT.VSAM.KSDS` without `REUSE`,
+REPROs the one-record priming file into it (W15), and then defines, paths and
+builds an `UPGRADE` alternate index over it (STEP20-30). CBTRN02C then runs
+`OPEN OUTPUT TRANSACT-FILE` (line 256, `ACCESS MODE IS RANDOM`).
+
+**GnuCOBOL:** the OPEN succeeds with status `00` and recreates the file. The
+priming record disappears, and TRANSACT ends with exactly the 262 posted
+transactions. That is what `golden/POSTTRAN/` holds.
+
+**z/OS, according to IBM's documentation** (fetched 2026-11-23):
+
+1. Enterprise COBOL for z/OS 6.3 Language Reference, *OPEN statement*
+   (https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-open-statement):
+   > "Do not specify OUTPUT for files that: Contain records. The file will be
+   > replaced by new data. If the OUTPUT phrase is specified for a file that
+   > already contains records, the data set must be defined as reusable and
+   > cannot have an alternate index."
+
+   TRANSACT breaks both conditions: it isn't reusable, and it has an AIX.
+2. Enterprise COBOL 6.3 Programming Guide, *Opening a loaded file (a file with
+   records)* (https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=rrds-opening-loaded-file-file-records):
+   > "To open a file that already contains records, use OPEN INPUT, OPEN I-O,
+   > or OPEN EXTEND."
+
+   OUTPUT isn't among them. *Opening an empty file*
+   (https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=rrds-opening-empty-file)
+   defines empty as "a file that has never contained records", and the
+   *OPEN statement notes* (https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statement-open-notes)
+   say a VSAM file is available if it "contains records or has previously
+   contained records".
+3. z/OS 2.5 DFSMS Using Data Sets, *Reusing a VSAM data set as a work file*
+   (https://www.ibm.com/docs/en/zos/2.5.0?topic=set-reusing-vsam-data-as-work-file):
+   > "A data set that is not reusable can be loaded only once. ... the only
+   > way to remove the set of data is to use the access method services
+   > command DELETE" ... "A reusable base cluster cannot have an alternate
+   > index" ... "VSAM uses a high-used relative byte address (RBA) field to
+   > determine whether a data set is empty or not. ... In a reusable data set,
+   > you can reset to zero this high-used RBA field at OPEN by specifying
+   > MACRF=RST in the ACB at OPEN."
+4. z/OS 2.5 DFSMS Macro Instructions for Data Sets, *OPEN return and reason
+   codes* (https://www.ibm.com/docs/en/zos/2.5.0?topic=uvmrrc-open-return-reason-codes):
+   > "232(X'E8') Reset was specified for a non-reusable data set and the data
+   > set is not empty."
+
+   Register 15 = 8: "At least one data set (VSAM or non-VSAM) was not opened
+   successfully".
+
+**What that means for this job (inference, not quoted):** after TRANFILE.jcl
+has loaded the priming record, TRANSACT's high-used RBA isn't zero, so on z/OS
+the `OPEN OUTPUT` should fail. That follows from quote 1. Quote 4 is the VSAM
+reason we'd expect, if Enterprise COBOL implements OUTPUT on a loaded KSDS with
+an ACB reset (`MACRF=RST`); the docs imply this but don't state it. The pages
+read don't say which COBOL file status results: the *Common processing
+facilities* status table offers 37 ("would not support the open mode") and the
+VSAM-specific 9x codes, but names neither for this case. Whatever the status,
+CBTRN02C treats anything other than `'00'` as fatal (lines 257-269): it
+displays `ERROR OPENING TRANSACTION FILE` and the status, then CEE3ABD abends
+U0999. Abnormal disposition then deletes `DALYREJS(+1)`, and ACCTDATA and
+TCATBALF are never opened.
+
+**So:** on real z/OS, POSTTRAN as packaged (TRANFILE then POSTTRAN) would
+abend at the OPEN, by IBM's documentation. GnuCOBOL instead runs it to the end
+with RC 4. The golden output describes "OPEN OUTPUT replaces the cluster",
+which IBM permits only for a REUSE cluster with no AIX. Not verified: whether
+CardDemo's intended runtime (AWS Mainframe Modernization, not z/OS VSAM)
+behaves like GnuCOBOL here.
+
+**To decide:** whether the target semantics are "replace" (current golden),
+or z/OS's (abend unless TRANSACT is empty or redefined first). Either a
+DELETE/DEFINE without priming, or REUSE with the AIX dropped, would make z/OS
+match the golden output.
+
 ---
 
 ## Per-job status
@@ -305,10 +407,16 @@ translation problem.
 | Job | Program | Compiles | Runs | Golden | Identical runs | External CALLs |
 |---|---|---|---|---|---|---|
 | READACCT | CBACT01C | yes, no diagnostics | RC 0 | `golden/READACCT/` | 2 of 2 | COBDATFT (W6), CEE3ABD (W7) |
-| READCARD | CBACT02C | not yet | | | | CEE3ABD |
-| READXREF | CBACT03C | not yet | | | | CEE3ABD |
-| READCUST | CBCUS01C | not yet | | | | CEE3ABD |
-| POSTTRAN | CBTRN02C | not yet | | | | CEE3ABD; clock (W8) |
+| READCARD | CBACT02C | yes, no diagnostics | RC 0 | `golden/READCARD/` | 2 of 2 | CEE3ABD |
+| READXREF | CBACT03C | yes, no diagnostics | RC 0 | `golden/READXREF/` | 2 of 2 | CEE3ABD |
+| READCUST | CBCUS01C | yes, no diagnostics | RC 0 | `golden/READCUST/` | 2 of 2 | CEE3ABD |
+| POSTTRAN | CBTRN02C | yes, no diagnostics | RC 4 (rejects) | `golden/POSTTRAN/` | 2 of 2 | CEE3ABD; clock (W8) |
+
+**READCARD / READXREF / READCUST** only write SYSOUT: each program DISPLAYs
+every record of its KSDS in key order, and each record line matches the seed
+byte for byte. CBACT03C and CBCUS01C DISPLAY each record **twice** (lines 78
+and 96), while CBACT02C has the second DISPLAY commented out. That's the source's
+behaviour, not a runner artefact.
 
 READACCT golden (clock 2026-01-15T12:00:00Z):
 
@@ -319,7 +427,26 @@ READACCT golden (clock 2026-01-15T12:00:00Z):
 | ACCTDATA.VBPS (VB 84) | created | 100 (lengths 12, 39) | `5031a2ba5fe4` |
 | ACCTDATA.VSAM.KSDS | unchanged input | 50 | `00a9fd689c9e` |
 
-**Known for POSTTRAN:** CardDemo loads `TRANSACT.VSAM.KSDS` from
-`DALYTRAN.PS.INIT` (`TRANFILE.jcl`), which exists only in `data/EBCDIC`, so
-there's no ASCII seed for it. The runner currently stops there with a
-"needs upstream" error.
+POSTTRAN golden (clock 2026-01-15T12:00:00Z):
+
+| Dataset | Role | Records | sha256 (first 12) |
+|---|---|---|---|
+| ACCTDATA.VSAM.KSDS | updated (all 50 accounts rewritten) | 50 | `823f660ea3c3` |
+| TRANSACT.VSAM.KSDS | updated: priming record gone (D5), 262 posted | 262 | `a240bf4cfd7b` |
+| TCATBALF.VSAM.KSDS | updated: 50 balances created | 100 | `8a8ee5117337` |
+| DALYREJS.G0001V00 (F 430) | created (W16) | 38 | `b6ef92c07bee` |
+| DALYTRAN.PS | unchanged input | 300 | `5b25c7ccc8a5` |
+| CARDXREF.VSAM.KSDS | unchanged input | 50 | `d49145cf821e` |
+
+- **RC 4 is expected:** CBTRN02C sets `RETURN-CODE` to 4 whenever it rejects
+  anything (lines 229-230). All 38 rejects are `0102 OVERLIMIT TRANSACTION`,
+  and 262 + 38 = 300 daily transactions.
+- **Frozen clock in practice:** all 262 `TRAN-PROC-TS` values are
+  `2026-01-15-12.00.00.000000`, hundredths included (W8).
+- **D2 doesn't occur here:** the one `INITIALIZE` (line 504,
+  `TRAN-CAT-BAL-RECORD`) is followed by an `ADD` into `TRAN-CAT-BAL`, which
+  sets the sign. Every signed zoned field in ACCTDATA, TRANSACT and TCATBALF
+  carries an overpunch sign.
+- **D1 does:** account 49 is rewritten with the ASCII seed's bytes 103-112.
+- **D5:** on z/OS this job would abend at `OPEN OUTPUT TRANSACT-FILE`, by
+  IBM's documentation.
