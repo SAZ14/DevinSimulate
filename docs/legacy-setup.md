@@ -28,10 +28,21 @@ programs locally. Each entry says **what**, **why**, and **effect on fidelity**.
 ### W2. Compile dialect: `-std=ibm`
 - **What:** Programs are compiled with `cobc -x -std=ibm -I legacy/app/cpy`.
 - **Why:** CardDemo targets IBM Enterprise COBOL. CBACT01C also compiles cleanly under
-  the default dialect, but `-std=ibm` matches the source's dialect for
-  reserved words and numeric-truncation behaviour (`TRUNC(STD)`-like binary handling).
-  That matters for byte-identical golden output.
-- **Fidelity:** Closer to mainframe semantics than the default dialect.
+  the default dialect, but `-std=ibm` (`ibm.conf` → `ibm-strict.conf` + `lax.conf-inc`)
+  changes settings that affect output bytes. Verified against the installed config:
+  | Setting | default | `-std=ibm` | Why it matters |
+  |---|---|---|---|
+  | `binary-size` | 1-2-4-8 | 2-4-8 | COMP field widths match IBM |
+  | `binary-byteorder` | big-endian | big-endian | same |
+  | `binary-truncate` | yes | **no** | closer to IBM `TRUNC(BIN)` than `TRUNC(STD)`; record the mainframe compile option if it's known |
+  | `arithmetic-osvs` / `perform-osvs` / `move-ibm` | no | yes | IBM intermediate-result and MOVE semantics |
+  | `hostsign` | no | yes | accepts IBM sign nibbles in zoned/packed data |
+  | `pretty-display` | yes | no | `DISPLAY` of numerics matches IBM (affects SYSOUT goldens) |
+  | `assign-clause` | dynamic | external | `ASSIGN TO ACCTFILE` resolves to a DD name via env vars (`DD_ACCTFILE` / `dd_ACCTFILE` / `ACCTFILE`), which the runner relies on |
+  | `vsam-status` | ignore | ok | VSAM-style file status codes |
+- **Fidelity:** Closer to mainframe semantics than the default dialect. Open question:
+  the original `TRUNC` compile option is unknown. If it was `TRUNC(STD)`, add
+  `-fbinary-truncate` and log it here.
 
 ### W3. `_FORTIFY_SOURCE redefined` warning (ignored)
 - **What:** Every `cobc` run prints `<command-line>: warning: "_FORTIFY_SOURCE" redefined`.
