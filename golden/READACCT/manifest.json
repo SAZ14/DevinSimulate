@@ -1,0 +1,241 @@
+{
+  "clock_check": "2026011512000000+0000",
+  "cobc_flags": [
+    "-x",
+    "-std=ibm",
+    "-fbinary-truncate",
+    "-fsign=EBCDIC"
+  ],
+  "datasets": {
+    "AWS.M2.CARDDEMO.ACCTDATA.ARRYPS": {
+      "bytes": 5500,
+      "file": "datasets/AWS.M2.CARDDEMO.ACCTDATA.ARRYPS",
+      "lrecl": 110,
+      "org": "PS",
+      "recfm": "FB",
+      "records": 50,
+      "role": "created",
+      "sha256": "ff033653be454b12352edbf3426f8122c25ffbc4d1818d19b13a452bb87a0bfc"
+    },
+    "AWS.M2.CARDDEMO.ACCTDATA.PSCOMP": {
+      "bytes": 5350,
+      "file": "datasets/AWS.M2.CARDDEMO.ACCTDATA.PSCOMP",
+      "lrecl": 107,
+      "org": "PS",
+      "recfm": "FB",
+      "records": 50,
+      "role": "created",
+      "sha256": "3e80d1296b3d5b62be14271db614915bbdfc9c858a68eb1c66139e2446554d34"
+    },
+    "AWS.M2.CARDDEMO.ACCTDATA.VBPS": {
+      "bytes": 2950,
+      "file": "datasets/AWS.M2.CARDDEMO.ACCTDATA.VBPS",
+      "format": "GnuCOBOL varseq 0: 2-byte BE length (data only) + X'0000'",
+      "lrecl": 84,
+      "org": "PS",
+      "recfm": "VB",
+      "record_lengths": [
+        12,
+        39
+      ],
+      "records": 100,
+      "role": "created",
+      "sha256": "5031a2ba5fe40319c386bd9f62f3259d45f568cadae39e5528fd01353f860c71"
+    },
+    "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS": {
+      "bytes": 15000,
+      "lrecl": 300,
+      "org": "KSDS",
+      "recfm": "F",
+      "records": 50,
+      "role": "unchanged input",
+      "seed": "acctdata.txt",
+      "sha256": "00a9fd689c9e572a60101afa688ab210f2f012f70040d219617d6134bb708649"
+    }
+  },
+  "files": {
+    "sysout/STEP05.DISPLAY": {
+      "bytes": 41426,
+      "sha256": "5f803fb3b361fb7803578a9de4f5485fa07e18346302835a97e87c4e4d0c67e3"
+    },
+    "sysout/STEP05.SYSOUT": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sysout/STEP05.SYSPRINT": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sysout/STEP05.stderr": {
+      "bytes": 172,
+      "sha256": "2a64d168b8099a40fe5335d6c1aade8e2113e65db8ec5687bfcbd30c32c4e1a7"
+    }
+  },
+  "frozen_clock": {
+    "epoch": 1768478400,
+    "utc": "2026-01-15T12:00:00Z"
+  },
+  "jcl": {
+    "file": "legacy/app/jcl/READACCT.jcl",
+    "sha256": "0965badda9c801df4f86e74755b66325764d8d1a840c615e6552b660f6401f15"
+  },
+  "job": "READACCT",
+  "legacy_commit": "59cc6c2fd7ebd7ef7925cad552a01a4b8b6e4d5e",
+  "programs": {
+    "CBACT01C": {
+      "compile_warnings": [],
+      "copybooks": [
+        "CVACT01Y.cpy",
+        "CODATECN.cpy"
+      ],
+      "inputs_sha256": "cd794849e49c02566b7fd2491a0295aa6f5cd6342a5ea2206728680c08f4b43b",
+      "source": "legacy/app/cbl/CBACT01C.cbl"
+    }
+  },
+  "runtime_env": {
+    "COB_VARSEQ_FORMAT": "0",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "seed_loads": [
+    {
+      "dsn": "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+      "from_dsn": "AWS.M2.CARDDEMO.ACCTDATA.PS",
+      "loader": "KSLOAD RECORDS=000000050",
+      "seed": "acctdata.txt",
+      "seed_normalisation": {
+        "crlf": 0,
+        "padded": 0,
+        "records": 50
+      },
+      "via": "REPRO in ACCTFILE.jcl"
+    }
+  ],
+  "steps": [
+    {
+      "abended": false,
+      "dds": [
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.ACCTDATA.PSCOMP",
+          "dd": "DD01",
+          "disp": [
+            "MOD",
+            "DELETE",
+            "DELETE"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.ACCTDATA.PSCOMP"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.ACCTDATA.ARRYPS",
+          "dd": "DD02",
+          "disp": [
+            "MOD",
+            "DELETE",
+            "DELETE"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.ACCTDATA.ARRYPS"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.ACCTDATA.VBPS",
+          "dd": "DD03",
+          "disp": [
+            "MOD",
+            "DELETE",
+            "DELETE"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.ACCTDATA.VBPS"
+        }
+      ],
+      "pgm": "IEFBR14",
+      "result": {
+        "rc": 0
+      },
+      "step": "PREDEL"
+    },
+    {
+      "abended": false,
+      "dds": [
+        {
+          "dd": "STEPLIB",
+          "ignored": "load library"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS",
+          "dd": "ACCTFILE",
+          "disp": [
+            "SHR",
+            "KEEP",
+            "KEEP"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.ACCTDATA.VSAM.KSDS"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.ACCTDATA.PSCOMP",
+          "dd": "OUTFILE",
+          "disp": [
+            "NEW",
+            "CATLG",
+            "DELETE"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.ACCTDATA.PSCOMP"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.ACCTDATA.ARRYPS",
+          "dd": "ARRYFILE",
+          "disp": [
+            "NEW",
+            "CATLG",
+            "DELETE"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.ACCTDATA.ARRYPS"
+        },
+        {
+          "coded_dsn": "AWS.M2.CARDDEMO.ACCTDATA.VBPS",
+          "dd": "VBRCFILE",
+          "disp": [
+            "NEW",
+            "CATLG",
+            "DELETE"
+          ],
+          "dsn": "AWS.M2.CARDDEMO.ACCTDATA.VBPS"
+        },
+        {
+          "dd": "SYSOUT",
+          "sysout": "*"
+        },
+        {
+          "dd": "SYSPRINT",
+          "sysout": "*"
+        }
+      ],
+      "pgm": "CBACT01C",
+      "result": {
+        "rc": 0
+      },
+      "step": "STEP05"
+    }
+  ],
+  "stubs": {
+    "CEE3ABD": "e4050e0e3cc7af1e6cc84ab06845894ae06b4bf9d45bed93d990ac080f4d32d9",
+    "COBDATFT": "dac298d0681ee6915eecc5844dd635aecd72ed9a5f7ade028596da21b3d22b8e"
+  },
+  "toolchain": {
+    "cobc": "cobc (GnuCOBOL) 3.1.2.0",
+    "gcc": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "indexed_handler": "BDB"
+  },
+  "verification": {
+    "compared": [
+      "datasets/AWS.M2.CARDDEMO.ACCTDATA.ARRYPS",
+      "datasets/AWS.M2.CARDDEMO.ACCTDATA.PSCOMP",
+      "datasets/AWS.M2.CARDDEMO.ACCTDATA.VBPS",
+      "manifest.json",
+      "sysout/STEP05.DISPLAY",
+      "sysout/STEP05.SYSOUT",
+      "sysout/STEP05.SYSPRINT",
+      "sysout/STEP05.stderr"
+    ],
+    "identical_runs": 2
+  }
+}
